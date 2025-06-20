@@ -94,9 +94,5 @@ def juiz_resposta(pergunta: str,resposta: str) -> str:
     
     resposta_juiz = juiz([
     HumanMessage(content=prompt_juiz + "\n\nPergunta: " + pergunta + "\nResposta: " + resposta)
-    ])    
-    if "Aprovado" in resposta_juiz.content:
-        return resposta.strip()
-        
-    else:
-       return resposta_juiz.content.strip()
+    ])
+    return resposta_juiz.content.strip()
