@@ -1,4 +1,4 @@
-from ai.ai_model import verifica_pergunta, responder_pergunta, rag_responder, juiz_resposta
+from app.ai.ai_model import verifica_pergunta, responder_pergunta, rag_responder, juiz_resposta
 from datetime import datetime
 # Service
 
