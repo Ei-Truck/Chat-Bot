@@ -24,7 +24,7 @@ model = genai.GenerativeModel("gemini-2.0-flash")
 def verifica_pergunta(pergunta:str)-> str:
     llm = ChatGoogleGenerativeAI(google_api_key=chave_api,model="gemini-2.0-flash",temperature=0)
     prompt_avaliacao = "Você é um assistente que verifica se um texto contém linguagem ofensiva, discurso de ódio, calúnia ou difamação. Responda 'SIM' se contiver e 'NÃO' caso contrário. Seja estrito na sua avaliação."
-    
+
     resposta_llm = llm.invoke([HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)])
     return resposta_llm.content.strip()
 
@@ -83,8 +83,13 @@ def juiz_resposta(pergunta: str,resposta: str) -> str:
     - Está clara para o nível médio técnico?
     - O próximo passo sugerido está bem formulado?
 
-    Se a resposta for boa, retorne a mesma resposta.
-    Se tiver problemas, retorne uma versão melhorada.
+    Se a resposta for boa:
+     - escreva um "Aprovado" no começo da sua frase
+     - retorne o porquê que a resposta é boa.
+        
+    Se tiver problemas:
+        - escreva "Reprovado" no começo da sua frase
+        - proponha uma versão melhorada.
     '''
     
     resposta_juiz = juiz([
