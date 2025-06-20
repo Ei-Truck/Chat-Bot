@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from service import question_for_gemini
 
 routes = Blueprint("routes", __name__)
 
@@ -6,15 +7,15 @@ routes = Blueprint("routes", __name__)
 def health():
     return jsonify({"status": "OK"}), 200
 
-@routes.route("/version", methods=["POST"])
+@routes.route("/chat", methods=["POST"])
 def chat():
-    data = request.json
-    question = data.get("message","")
+    data:dict = request.json
+    question:str = data.get("message","")
     if not question:
         return jsonify({"error": "No message provided"}), 400
 
-    answer = question_for_gemini(question)
+    answer:dict = question_for_gemini(question)
     if not answer:
         return jsonify({"error": "Failed to generate answer"}), 500
 
-    return jsonify({"answer": answer}), 200
+    return jsonify(answer), 200
