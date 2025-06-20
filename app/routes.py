@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from service import question_for_gemini
+from .service import question_for_gemini
 
 routes = Blueprint("routes", __name__)
 
