@@ -1,0 +1,9 @@
+Flask~=3.1.1
+google~=3.0.0
+protobuf~=5.29.5
+langchain-google-genai~=2.0.10
+langchain-core~=0.3.62
+langchain-text-splitters~=0.3.8
+langchain~=0.3.25
+dotenv~=0.9.9
+python-dotenv~=1.1.0
