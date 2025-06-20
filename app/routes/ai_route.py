@@ -4,7 +4,7 @@ from prompt_toolkit.validation import ValidationError
 from app.schemas.question_schema import AskSchema
 
 
-from .service import question_for_gemini
+from app.service.service_ai import question_for_gemini
 
 routes = Blueprint("routes", __name__)
 
