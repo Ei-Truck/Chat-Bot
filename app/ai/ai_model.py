@@ -41,7 +41,7 @@ def responder_pergunta(pergunta: str) -> str:
 # Utilizar o RAG
 def rag_responder(pergunta: str) -> str:
     docs = []
-    pasta = "text"
+    pasta = "app/ai/text/"
     for nome in os.listdir(pasta):
         if nome.endswith(".txt"):
             caminho = os.path.join(pasta, nome)
