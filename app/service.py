@@ -1,4 +1,5 @@
 from modelo import verifica_pergunta, responder_pergunta, rag_responder, juiz_resposta
+from datetime import datetime
 # Service
 
 def question_for_gemini(question: str) -> dict:
@@ -9,14 +10,21 @@ def question_for_gemini(question: str) -> dict:
             }
 
     resposta:str = responder_pergunta(question)
-
-    juiz_resposta_texto:str = juiz_resposta(question, resposta)
+    resposta_rag:str = rag_responder(question)
 
     return \
-        {
-            "question": question,
-            "answer": resposta,
-            "judgment": juiz_resposta_texto
+        {   "timestamp": datetime.now().isoformat(),
+            "content":{
+                "rag":{
+                    "rag_answer": resposta_rag,
+                    "judgment": juiz_resposta(question, resposta_rag)
+                },
+                "gemini":{
+                    "gemini_answer": resposta,
+                    "judgment": juiz_resposta(question, resposta)
+                },
+                "question": question,
+            }
         }
 
 
