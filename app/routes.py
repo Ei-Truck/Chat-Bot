@@ -1,4 +1,9 @@
 from flask import Blueprint, jsonify, request
+from prompt_toolkit.validation import ValidationError
+
+from app.schemas.question_schema import AskSchema
+
+
 from .service import question_for_gemini
 
 routes = Blueprint("routes", __name__)
@@ -9,12 +14,15 @@ def health():
 
 @routes.route("/chat", methods=["POST"])
 def chat():
-    data:dict = request.json
-    question:str = data.get("message","")
-    if not question:
-        return jsonify({"error": "No message provided"}), 400
+    data:dict = request.get_json()
 
-    answer:dict = question_for_gemini(question)
+    try:
+        validate_data = AskSchema().load(data)
+    except ValidationError as err:
+        return jsonify({"error": str(err)}), 400
+
+    answer:dict = question_for_gemini(validate_data["question"])
+
     if not answer:
         return jsonify({"error": "Failed to generate answer"}), 500
 
