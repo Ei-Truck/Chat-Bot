@@ -22,7 +22,11 @@ model = genai.GenerativeModel("gemini-2.0-flash")
 
 # Verificar pergunta
 def verifica_pergunta(pergunta:str)-> str:
-    llm = ChatGoogleGenerativeAI(google_api_key=chave_api,model="gemini-2.0-flash",temperature=0)
+    llm = ChatGoogleGenerativeAI(
+        google_api_key=chave_api,
+        model="gemini-2.0-flash",
+        temperature=0
+    )
     prompt_avaliacao = "Você é um assistente que verifica se um texto contém linguagem ofensiva, discurso de ódio, calúnia ou difamação. Responda 'SIM' se contiver e 'NÃO' caso contrário. Seja estrito na sua avaliação."
 
     resposta_llm = llm.invoke([HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)])
@@ -43,11 +47,6 @@ def rag_responder(pergunta: str) -> str:
             caminho = os.path.join(pasta, nome)
             loader = TextLoader(caminho, encoding="utf-8")
             docs.extend(loader.load())
-    rag = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
-        temperature=0.5,
-        google_api_key=chave_api
-    )
     documentos = docs
     splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     docs_divididos = splitter.split_documents(documentos)
@@ -59,7 +58,10 @@ def rag_responder(pergunta: str) -> str:
     db = FAISS.from_documents(docs_divididos, embeddings)
     # Cria o chain de pergunta-resposta com recuperação
     rag_chain = RetrievalQA.from_chain_type(
-        llm = ChatGoogleGenerativeAI(google_api_key=chave_api,model="gemini-2.0-flash"),
+        llm = ChatGoogleGenerativeAI(
+            google_api_key=chave_api,
+            model="gemini-2.0-flash"
+        ),
         chain_type="stuff",
         retriever=db.as_retriever(),
         return_source_documents=True
@@ -93,6 +95,8 @@ def juiz_resposta(pergunta: str,resposta: str) -> str:
     '''
     
     resposta_juiz = juiz([
-    HumanMessage(content=prompt_juiz + "\n\nPergunta: " + pergunta + "\nResposta: " + resposta)
+    HumanMessage(
+        content=prompt_juiz + "\n\nPergunta: " + pergunta + "\nResposta: " + resposta
+    )
     ])
     return resposta_juiz.content.strip()
