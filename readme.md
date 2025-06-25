@@ -133,10 +133,4 @@ app/
 
 ---
 
-📌 **Dica:** Quer testar a API rapidinho? Use o [Postman](https://www.postman.com/) ou o comando abaixo:
-
-```bash
-curl -X POST http://127.0.0.1:5000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"question": "Qual o seu nome?"}'
-```
+📌 **Dica:** Quer testar a API rapidinho? Use o [Postman](https://www.postman.com/)
