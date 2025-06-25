@@ -15,13 +15,18 @@ def question_for_gemini(question: str) -> dict:
     # Converter a string JSON em dicionário Python
     dados = json.loads(judgment)
     # Acessar o atributo status
+    if dados["status"] == "Aprovado":
+        response = dados["answer"]
+    else:
+        response = dados["judgmentAnswer"]
     status = dados["status"]
+
     return \
         {   "timestamp": datetime.now().isoformat(),
             "content":{
-                "rag":{
-                    "rag_answer": resposta_rag,
-                    "judgment": judgment
+                "status": status,
+                "answer":{
+                    "answer": response
                 },
                 "question": question,
             }
