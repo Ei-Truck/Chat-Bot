@@ -6,7 +6,6 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import CharacterTextSplitter 
 from langchain.chains import RetrievalQA
 from dotenv import load_dotenv
-import re
 import os
 
 
@@ -31,12 +30,6 @@ def verifica_pergunta(pergunta:str)-> str:
 
     resposta_llm = llm.invoke([HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)])
     return resposta_llm.content.strip()
-
-# Rotina para enviar pergunta ao modelo
-def responder_pergunta(pergunta: str) -> str:
-    resposta = model.generate_content(pergunta)
-    return resposta.text.strip()
-
 
 # Utilizar o RAG
 def rag_responder(pergunta: str) -> str:
@@ -71,32 +64,52 @@ def rag_responder(pergunta: str) -> str:
     return resposta['result'].strip()
 
 # Verificar Resposta
-def juiz_resposta(pergunta: str,resposta: str) -> str:
+def juiz_resposta(pergunta: str,resposta: str, historico:list) -> str:
     juiz = ChatGoogleGenerativeAI(
         model="gemini-2.0-flash",
         temperature=0.5,
         google_api_key=chave_api
     )
-    prompt_juiz = '''
-    Você é um avaliador imparcial. Sua tarefa é revisar a resposta de um tutor de IA para uma pergunta de aluno.
+    prompt_juiz = f'''
+    Você é um avaliador imparcial. Sua tarefa é revisar a resposta de um tutor de IA.
 
     Critérios:
-    - A resposta está tecnicamente correta?
-    - Está clara para o nível médio técnico?
-    - O próximo passo sugerido está bem formulado?
+        - A resposta está tecnicamente correta?
+        - Está clara para o nível médio técnico?
+        - O próximo passo sugerido está bem formulado?
+
+    Se não souber como responder:
+        - procure a melhor resposta possível para a pergunta proposta.
+        - reavalie a resposta.
+        - não retorne a sua avaliação anterior à correção.
 
     Se a resposta for boa:
-     - escreva um "Aprovado" no começo da sua frase
-     - retorne o porquê que a resposta é boa.
-        
+        - defina o status como "Aprovado"
+        - retorne o porquê que a resposta é boa.
+
     Se tiver problemas:
-        - escreva "Reprovado" no começo da sua frase
+        - defina o status como Reprovado
         - proponha uma versão melhorada.
-    '''
+
+    Independente da ocasião, retorne um JSON com os campos:
+        - status: "Aprovado" ou "Reprovado"
+        - question: a pergunta realizada
+        - answer: a resposta original antes da correção
+        - judgmentAnswer: a resposta do juiz
+
+    A resposta deve estar no formato correto do JSON.
+    Remova o json do inicio da resposta
+    Utilize o histórico de perguntas e respostas anteriores, que está neste arquivo JSON {historico}
+    Você é obrigado a utiliza-lo    
+'''
     
     resposta_juiz = juiz([
     HumanMessage(
         content=prompt_juiz + "\n\nPergunta: " + pergunta + "\nResposta: " + resposta
     )
     ])
-    return resposta_juiz.content.strip()
+    resposta_juiz = resposta_juiz.content.strip()
+    if resposta_juiz.startswith("```json"):
+        resposta_juiz = resposta_juiz[len("```json"):].rstrip("```").strip()
+    return resposta_juiz
+    
