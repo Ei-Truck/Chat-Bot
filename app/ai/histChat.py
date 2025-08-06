@@ -4,8 +4,8 @@ import json
 
 r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
-def verifica_historico():
-    resp=r.lrange("histChat",0,-1)
+def verifica_historico(user_id: str) -> list:
+    resp=r.lrange(f"histChat:{user_id}",0,-1)
     return resp
 
 def remover_caracteres_especiais(resposta: str) -> str:
