@@ -104,6 +104,7 @@ def juiz_resposta(pergunta: str,resposta: str, historico:list) -> str:
     Você é obrigado a utiliza-lo    
 '''
     
+    
     resposta_juiz = juiz([
     HumanMessage(
         content=prompt_juiz + "\n\nPergunta: " + pergunta + "\nResposta: " + resposta
