@@ -63,6 +63,7 @@ def rag_responder(pergunta: str) -> str:
     resposta = rag_chain({"query": pergunta})
     return resposta['result'].strip()
 
+
 # Verificar Resposta
 def juiz_resposta(pergunta: str,resposta: str, historico:list) -> str:
     juiz = ChatGoogleGenerativeAI(
