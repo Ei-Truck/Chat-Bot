@@ -9,11 +9,12 @@ def verifica_historico():
     return resp
 
 def remover_caracteres_especiais(resposta: str) -> str:
-    resposta = unicodedata.normalize("NFD",resposta)
-    resposta = resposta.encode("ascii","ignore").decode("utf-8")
+    resposta = unicodedata.normalize("NFD", resposta)
+    resposta = resposta.encode("ascii", "ignore").decode("utf-8")
     return resposta
 
-def insere_resposta(resposta: str, respostasAnteriores: list):
+def insere_resposta(resposta: str, respostasAnteriores: list, user_id: str):
+    chave = get_hist_key(user_id)
     resp = json.loads(resposta)
 
     for campo in ['question', 'answer', 'judgmentAnswer']:
@@ -30,19 +31,20 @@ def insere_resposta(resposta: str, respostasAnteriores: list):
             "question": resp['question'],
             "answer": resp['judgmentAnswer']
         }
-    
+
     if not respostasAnteriores:
-        r.rpush("histChat", json.dumps(answer))
+        r.rpush(chave, json.dumps(answer))
+        r.expire(chave, TEMPO_EXPIRACAO)
         return 'Memória atualizada.'
 
     for x in respostasAnteriores:
         if json.loads(x) == answer:
             return 'Resposta já existente.'
 
-    r.rpush("histChat", json.dumps(answer))
+    r.rpush(chave, json.dumps(answer))
+    r.expire(chave, TEMPO_EXPIRACAO)
     return 'Memória atualizada.'
 
-
-
-def deleta_historico():
-    return r.delete("histChat")
+def deleta_historico(user_id: str):
+    chave = get_hist_key(user_id)
+    return r.delete(chave)
