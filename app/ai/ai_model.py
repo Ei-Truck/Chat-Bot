@@ -113,3 +113,4 @@ def juiz_resposta(pergunta: str,resposta: str, historico:list) -> str:
         resposta_juiz = resposta_juiz[len("```json"):].rstrip("```").strip()
     return resposta_juiz
     
+    
