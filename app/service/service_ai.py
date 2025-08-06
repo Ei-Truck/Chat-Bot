@@ -1,8 +1,8 @@
 from app.ai.ai_model import verifica_pergunta, rag_responder, juiz_resposta
 from app.ai.histChat import verifica_historico, insere_resposta
 from datetime import datetime
-# Service
 
+# Service
 def question_for_gemini(question: str) -> dict:
     if verifica_pergunta(question) == "SIM":
         return\
