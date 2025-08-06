@@ -30,5 +30,3 @@ def question_for_gemini(question: str) -> dict:
                 "question": question,
             }
         }
-
-
