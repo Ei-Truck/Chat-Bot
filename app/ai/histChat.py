@@ -14,7 +14,6 @@ def remover_caracteres_especiais(resposta: str) -> str:
     return resposta
 
 def insere_resposta(resposta: str, respostasAnteriores: list, user_id: str):
-    chave = get_hist_key(user_id)
     resp = json.loads(resposta)
 
     for campo in ['question', 'answer', 'judgmentAnswer']:
@@ -33,18 +32,17 @@ def insere_resposta(resposta: str, respostasAnteriores: list, user_id: str):
         }
 
     if not respostasAnteriores:
-        r.rpush(chave, json.dumps(answer))
-        r.expire(chave, TEMPO_EXPIRACAO)
+        r.rpush(f"histChat:{user_id}", json.dumps(answer))
+        r.expire(f"histChat:{user_id}", 86400)
         return 'Memória atualizada.'
 
     for x in respostasAnteriores:
         if json.loads(x) == answer:
             return 'Resposta já existente.'
 
-    r.rpush(chave, json.dumps(answer))
-    r.expire(chave, TEMPO_EXPIRACAO)
+    r.rpush(f"histChat:{user_id}", json.dumps(answer))
+    r.expire(f"histChat:{user_id}", 86400)
     return 'Memória atualizada.'
 
 def deleta_historico(user_id: str):
-    chave = get_hist_key(user_id)
-    return r.delete(chave)
+    return r.delete(f"histChat:{user_id}")
