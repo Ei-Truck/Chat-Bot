@@ -44,6 +44,5 @@ for nome in os.listdir(pasta):
         documentos = docs
         splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
         docs_divididos = splitter.split_documents(documentos)
-        texto = embedding_text(docs_divididos,question,1)
-        texto = texto[0][0]
+        texto = embedding_text(docs_divididos,"O que é telemetria?",1)[0][0]
         print(texto)

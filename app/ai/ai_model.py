@@ -6,6 +6,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import CharacterTextSplitter 
 from langchain.chains import RetrievalQA
 from dotenv import load_dotenv
+from ai.embedding import embedding_text
 import os
 
 
@@ -43,25 +44,8 @@ def rag_responder(pergunta: str) -> str:
     documentos = docs
     splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     docs_divididos = splitter.split_documents(documentos)
-    embeddings = GoogleGenerativeAIEmbeddings(
-    google_api_key=chave_api,
-    model="models/embedding-001"
-    )
-
-    db = FAISS.from_documents(docs_divididos, embeddings)
-    # Cria o chain de pergunta-resposta com recuperação
-    rag_chain = RetrievalQA.from_chain_type(
-        llm = ChatGoogleGenerativeAI(
-            google_api_key=chave_api,
-            model="gemini-2.0-flash"
-        ),
-        chain_type="stuff",
-        retriever=db.as_retriever(),
-        return_source_documents=True
-    )
-
-    resposta = rag_chain({"query": pergunta})
-    return resposta['result'].strip()
+    texto = embedding_text(docs_divididos,pergunta,1)[0][0]
+    return texto
 
 
 # Verificar Resposta
