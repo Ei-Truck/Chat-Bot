@@ -32,6 +32,20 @@ def verifica_pergunta(pergunta:str)-> str:
     resposta_llm = llm.invoke([HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)])
     return resposta_llm.content.strip()
 
+# Responder com o gemini
+def gemini_resp(pergunta: str) -> str:
+    normal_chat = ChatGoogleGenerativeAI(
+            model="gemini-2.0-flash",
+            temperature=0.5,
+            google_api_key=chave_api
+        )
+    prompt_gemini=f"""
+        Você é um agente de perguntas e respostas da empresa: EiTruck\n
+        Um usuario do seu chat te fez a seguinte pergunta: {pergunta}\n
+        Responda da melhor e mais elaborada forma possivel.
+        """
+    resposta_gemini=normal_chat(HumanMessage(content=prompt_gemini))
+
 # Utilizar o RAG
 def rag_responder(pergunta: str) -> str:
     docs = []
@@ -42,7 +56,7 @@ def rag_responder(pergunta: str) -> str:
             loader = TextLoader(caminho, encoding="utf-8")
             docs.extend(loader.load())
     documentos = docs
-    splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
     docs_divididos = splitter.split_documents(documentos)
     texto = embedding_text(docs_divididos,pergunta,1)[0][0]
     return texto
