@@ -21,11 +21,18 @@ model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 
 # Embedding
-def embedding_text(content:str,text,user_id:str):
-    embedding = model.encode(content)
-    similarity = cosine_similarity([embedding])[0][0]
-    return similarity
-    
+def embedding_text(docs, question, k):
+    texts = [doc.page_content for doc in docs]
+    embeddings = model.encode(texts)
+    embedding_question = model.encode(question)
+    embeddings = np.array(embeddings)                  
+    embedding_question = np.array(embedding_question).reshape(1, -1)  
+    similarities = cosine_similarity(embeddings, embedding_question).flatten()
+    top_k_indices = similarities.argsort()[-k:][::-1]
+    return [(texts[0], similarities[0]) for i in top_k_indices]
+
+def armazenar_vetores(id,question):
+    print()  
 
 docs = []
 pasta = "app/ai/text/"
@@ -35,6 +42,8 @@ for nome in os.listdir(pasta):
         loader = TextLoader(caminho, encoding="utf-8")
         docs.extend(loader.load())
         documentos = docs
-        splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
         docs_divididos = splitter.split_documents(documentos)
-        print(embedding_text(docs_divididos,"O que é telemetria?",1))
+        texto = embedding_text(docs_divididos,question,1)
+        texto = texto[0][0]
+        print(texto)
