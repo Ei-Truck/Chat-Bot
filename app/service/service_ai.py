@@ -1,5 +1,5 @@
 from app.ai.ai_model import verifica_pergunta, rag_responder, juiz_resposta
-from app.ai.histChat import verifica_historico, insere_resposta
+from app.ai.hist_chat import verifica_historico, insere_resposta
 from datetime import datetime
 
 user_id = 'Teste'
