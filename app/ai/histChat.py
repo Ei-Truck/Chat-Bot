@@ -1,8 +1,16 @@
 import redis
 import unicodedata
 import json
+from dotenv import load_dotenv
+import os
 
-r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+load_dotenv()
+
+# Configura o host do Redis
+redis_host = os.getenv("REDIS_HOST")
+redis_port = os.getenv("REDIS_PORT")
+
+r = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
 
 def verifica_historico(user_id: str) -> list:
     resp=r.lrange(f"histChat:{user_id}",0,-1)
