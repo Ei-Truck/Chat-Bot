@@ -1,25 +1,16 @@
 from sentence_transformers import SentenceTransformer
 from redis.commands.search.query import Query
-from redis.commands.search.field import TextField, TagField, VectorField
-from redis.commands.search.indexDefinition import IndexDefinition, IndexType
-from redis.commands.json.path import Path
 import numpy as np
-import redis
+from pymongo import MongoClient
 
 # Inicializando o modelo de embeddings
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
-# Configurando a conexão com o Redis
-r = redis.Redis(decode_responses=True, host='localhost', port=6379)
+# Configurando a conexão com o Mongo
+cliente = MongoClient("mongodb://localhost:27017/")
 
-try:
-    r.ft("vector_idx").dropindex(True)
-except redis.exceptions.ResponseError:
-    pass
-
-
-def hist(content:str):
-    r.hset("doc:1", mapping={
+def hist(content:str,user_id:str):
+    r.hset(f"histChat:{user_id}", mapping={
         "content": content,
         "genre": "hist",
         "embedding": model.encode(content).astype(np.float32).tobytes(),
@@ -29,8 +20,12 @@ def hist(content:str):
         "*=>[KNN 3 @embedding $vec AS vector_distance]"
     ).return_field("score").dialect(2)
 
+    query_text = 'Olá'
     res = r.ft("vector_idx").search(
         q, query_params={
             "vec": model.encode(query_text).astype(np.float32).tobytes()
         }
     )
+    return res
+
+print(hist("Olá, tudo bem?", "user123"))
