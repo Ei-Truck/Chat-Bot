@@ -6,7 +6,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import CharacterTextSplitter 
 from langchain.chains import RetrievalQA
 from dotenv import load_dotenv
-from ai.embedding import embedding_text
+from app.ai.embedding import embedding_text
 import os
 
 
