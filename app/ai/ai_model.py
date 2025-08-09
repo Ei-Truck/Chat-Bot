@@ -44,7 +44,10 @@ def gemini_resp(pergunta: str) -> str:
         Um usuario do seu chat te fez a seguinte pergunta: {pergunta}\n
         Responda da melhor e mais elaborada forma possivel.
         """
-    resposta_gemini=normal_chat(HumanMessage(content=prompt_gemini))
+    response = HumanMessage(content=prompt_gemini).content.strip()
+    if isinstance(response, tuple):
+        response = response[0]
+    return response
 
 # Utilizar o RAG
 def rag_responder(pergunta: str) -> str:

@@ -19,10 +19,7 @@ def question_for_gemini(question: str) -> dict:
     
     # Aciona o juiz com base na pergunta, resposta e histórico
     judgment:str = juiz_resposta(question, resposta_rag, hist)
-    
-    if "Reprovado" == judgment["status"]:
-        gemini_resp(question)
-    
+        
     insere_resposta(judgment,hist,user_id)
     
     return \
