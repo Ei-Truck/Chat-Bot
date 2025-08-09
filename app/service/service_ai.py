@@ -1,6 +1,8 @@
 from app.ai.ai_model import verifica_pergunta, rag_responder, juiz_resposta, gemini_resp
 from app.ai.hist_chat import verifica_historico, insere_resposta
 from datetime import datetime
+import json
+
 
 user_id = 'Teste'
 
@@ -12,14 +14,20 @@ def question_for_gemini(question: str) -> dict:
                 "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
             }
     # Obtém resposta do RAG
-    resposta_rag:str = rag_responder(question)
+    resposta:str = rag_responder(question)
     
     # Verifica perguntas e respostas anteriores
     hist=verifica_historico(user_id)
     
     # Aciona o juiz com base na pergunta, resposta e histórico
-    judgment:str = juiz_resposta(question, resposta_rag, hist)
-        
+    judgment:str = juiz_resposta(question, resposta, hist)
+    juiz = json.loads(judgment)
+    status = juiz["status"]
+    
+    if status == "Reprovado":
+        resposta:str = gemini_resp(question)  
+        judgment:str = juiz_resposta(question, resposta, hist)
+  
     insere_resposta(judgment,hist,user_id)
     
     return \

@@ -35,19 +35,18 @@ def verifica_pergunta(pergunta:str)-> str:
 # Responder com o gemini
 def gemini_resp(pergunta: str) -> str:
     normal_chat = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            temperature=0.5,
-            google_api_key=chave_api
-        )
-    prompt_gemini=f"""
-        Você é um agente de perguntas e respostas da empresa: EiTruck\n
-        Um usuario do seu chat te fez a seguinte pergunta: {pergunta}\n
-        Responda da melhor e mais elaborada forma possivel.
+        model="gemini-2.0-flash",
+        temperature=0.5,
+        google_api_key=chave_api
+    )
+    prompt_gemini = f"""
+        Você é um agente de perguntas e respostas da empresa EiTruck.
+        Um usuário do chat fez a seguinte pergunta: {pergunta}
+        Por favor, responda de forma precisa, detalhada e elaborada, focando em fornecer a melhor resposta possível.
+        Mantenha o foco na pergunta e não desvie do assunto.
         """
-    response = HumanMessage(content=prompt_gemini).content.strip()
-    if isinstance(response, tuple):
-        response = response[0]
-    return response
+    response = normal_chat([HumanMessage(content=prompt_gemini)])
+    return response.content.strip()
 
 # Utilizar o RAG
 def rag_responder(pergunta: str) -> str:
