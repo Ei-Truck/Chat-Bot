@@ -5,10 +5,6 @@ from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
 
-from langchain_community.document_loaders import TextLoader 
-from langchain_text_splitters import CharacterTextSplitter 
-
-
 # Resgatando o host do mongo
 load_dotenv()
 
@@ -32,5 +28,6 @@ def embedding_text(docs, question, k):
     return [(texts[0], similarities[0]) for i in top_k_indices]
 
 def armazenar_vetores(id,question):
+    
     print()  
 

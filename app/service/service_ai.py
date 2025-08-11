@@ -28,7 +28,6 @@ def question_for_gemini(question: str) -> dict:
         resposta:str = gemini_resp(question)  
         judgment:str = juiz_resposta(question, resposta, hist)
   
-    insere_resposta(judgment,hist,user_id)
     juiz = json.loads(judgment)
     status = juiz["status"]
 
@@ -36,6 +35,9 @@ def question_for_gemini(question: str) -> dict:
         final_answer = juiz["answer"]
     elif status == "Reprovado":
         final_answer = juiz["judgmentAnswer"]
+    
+    insere_resposta(final_answer,hist,user_id)
+
 
     return \
         {   "timestamp": datetime.now().isoformat(),
