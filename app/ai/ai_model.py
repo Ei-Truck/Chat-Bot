@@ -4,9 +4,8 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.messages import HumanMessage 
 from langchain_community.document_loaders import TextLoader 
 from langchain_text_splitters import CharacterTextSplitter 
-from langchain.chains import RetrievalQA
 from dotenv import load_dotenv
-from app.ai.embedding import embedding_text, armazenar_vetores
+from app.ai.embedding import embedding_text
 import os
 
 
@@ -60,12 +59,11 @@ def rag_responder(pergunta: str) -> str:
     documentos = docs
     splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
     docs_divididos = splitter.split_documents(documentos)
-    texto = embedding_text(docs_divididos,pergunta,1)[0][0]
-    return texto
-
+    texto = embedding_text(docs_divididos,pergunta,1)
+    return texto   
 
 # Verificar Resposta
-def juiz_resposta(pergunta: str,resposta: str, historico:list) -> str:
+def juiz_resposta(pergunta: str,resposta: str) -> str:
     juiz = ChatGoogleGenerativeAI(
         model="gemini-2.0-flash",
         temperature=0.5,
@@ -99,9 +97,7 @@ def juiz_resposta(pergunta: str,resposta: str, historico:list) -> str:
         - judgmentAnswer: a resposta do juiz
 
     A resposta deve estar no formato correto do JSON.
-    Remova o json do inicio da resposta
-    Utilize o histórico de perguntas e respostas anteriores, que está neste arquivo JSON {historico}
-    Você é obrigado a utiliza-lo    
+    Remova o json do inicio da resposta   
 '''
     
     
