@@ -39,3 +39,21 @@ def armazenar_vetores(id,question,answer):
                 }
     collection.insert_one(json_mongo)
 
+def historico_gemini(id,question,answer):
+    collection = db[f'hist_usr_{id}']
+    embeddings = model.encode(answer)
+    embedding_question = model.encode(question)
+    embeddings = np.array(embeddings).reshape(1, -1)
+    embedding_question = np.array(embedding_question).reshape(1, -1)
+    similarities = cosine_similarity(embeddings, embedding_question).flatten()
+    try:
+        encontrado = collection.find_one({"question":float(similarities[0])},{ "_id": 0 })
+        if encontrado == None:
+            json_mongo = {
+                        "question":float(similarities[0]),
+                        "answer":answer
+                    }
+            collection.insert_one(json_mongo)
+        return True
+    except:
+        return False
