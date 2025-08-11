@@ -29,13 +29,18 @@ def question_for_gemini(question: str) -> dict:
         judgment:str = juiz_resposta(question, resposta, hist)
   
     insere_resposta(judgment,hist,user_id)
-    
+    juiz = json.loads(judgment)
+    status = juiz["status"]
+
+    if status == "Aprovado":
+        final_answer = juiz["answer"]
+    elif status == "Reprovado":
+        final_answer = juiz["judgmentAnswer"]
+
     return \
         {   "timestamp": datetime.now().isoformat(),
             "content":{
-                "rag":{
-                    "judgment": judgment
-                },
+                "answer": final_answer,
                 "question": question,
             }
         }
