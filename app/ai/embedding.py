@@ -11,6 +11,7 @@ load_dotenv()
 # Configura a conexão com o mongo
 host_mongo = os.getenv("MONGO_HOST")
 client = MongoClient(host=host_mongo)
+db = client['hist_embedding']
 
 # Inicializando o modelo de embeddings
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
@@ -27,7 +28,14 @@ def embedding_text(docs, question, k):
     top_k_indices = similarities.argsort()[-k:][::-1]
     return [(texts[0], similarities[0]) for i in top_k_indices]
 
-def armazenar_vetores(id,question):
+def armazenar_vetores(id,question,answer):
+    collection = db[f'hist_usr_{id}']
+    embeddings_answer = model.encode(answer)
+    embedding_question = model.encode(question)
     
-    print()  
+    json_mongo = {
+                    "question":embedding_question,
+                    "answer":embeddings_answer
+                }
+    collection.insert_one(json_mongo)
 
