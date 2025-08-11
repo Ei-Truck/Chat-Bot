@@ -39,9 +39,15 @@ def historico_gemini(id,question,answer):
     encontrado = collection.find_one({"question":float(similarities[0])},{ "_id": 0 })
     if encontrado == None:
         json_mongo = {
+                    "id_question":id,
                     "question":float(similarities[0]),
                     "answer":answer
                 }
         collection.insert_one(json_mongo)
         encontrado = collection.find_one({"question":float(similarities[0])},{ "_id": 0 })
+    return True
+
+def verifica_historico(id):
+    collection = db[f'hist_usr_{id}']
+    encontrado = collection.find_one({"id_question":id)},{ "_id": 0 ,"id_question":0})
     return encontrado
