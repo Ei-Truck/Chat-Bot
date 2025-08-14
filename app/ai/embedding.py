@@ -51,7 +51,7 @@ def verifica_historico(id,question,answer):
     embeddings = np.array(embeddings).reshape(1, -1)
     embedding_question = np.array(embedding_question).reshape(1, -1)
     similarities = cosine_similarity(embeddings, embedding_question).flatten()
-    if similarities[0] > 0:
+    if similarities[0] > 0.5:
         valor = float(similarities[0])
     else:
         return None
