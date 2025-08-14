@@ -42,13 +42,14 @@ def gemini_resp(pergunta: str) -> str:
         Você é um agente de perguntas e respostas da empresa EiTruck.
         Um usuário do chat fez a seguinte pergunta: {pergunta}
         Por favor, responda de forma precisa, detalhada e elaborada, focando em fornecer a melhor resposta possível.
+        Resuma a resposta ao máximo, focando em ser objetivo.
         Mantenha o foco na pergunta e não desvie do assunto.
         """
     response = normal_chat([HumanMessage(content=prompt_gemini)])
     return response.content.strip()
 
 # Utilizar o RAG
-def rag_responder(pergunta: str) -> str:
+def rag_responder(id,pergunta: str) -> str:
     docs = []
     pasta = "app/ai/text/"
     for nome in os.listdir(pasta):
@@ -59,8 +60,7 @@ def rag_responder(pergunta: str) -> str:
     documentos = docs
     splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
     docs_divididos = splitter.split_documents(documentos)
-    texto = embedding_text(docs_divididos,pergunta,1)
-    return texto   
+    return embedding_text(docs_divididos,pergunta,1) 
 
 # Verificar Resposta
 def juiz_resposta(pergunta: str,resposta: str) -> str:

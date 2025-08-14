@@ -36,18 +36,28 @@ def historico_gemini(id,question,answer):
     embeddings = np.array(embeddings).reshape(1, -1)
     embedding_question = np.array(embedding_question).reshape(1, -1)
     similarities = cosine_similarity(embeddings, embedding_question).flatten()
-    encontrado = collection.find_one({"question":float(similarities[0])},{ "_id": 0 })
-    if encontrado == None:
-        json_mongo = {
-                    "id_question":id,
-                    "question":float(similarities[0]),
-                    "answer":answer
-                }
-        collection.insert_one(json_mongo)
-        encontrado = collection.find_one({"question":float(similarities[0])},{ "_id": 0 })
+    json_mongo = {
+                "id_question":id,
+                "question":float(similarities[0]),
+                "answer":answer
+            }
+    collection.insert_one(json_mongo)
     return True
 
-def verifica_historico(id):
+def verifica_historico(id,question,answer):
     collection = db[f'hist_usr_{id}']
-    encontrado = collection.find_one({"id_question":id)},{ "_id": 0 ,"id_question":0})
-    return encontrado
+    embeddings = model.encode(answer)
+    embedding_question = model.encode(question)
+    embeddings = np.array(embeddings).reshape(1, -1)
+    embedding_question = np.array(embedding_question).reshape(1, -1)
+    similarities = cosine_similarity(embeddings, embedding_question).flatten()
+    if similarities[0] > 0:
+        valor = float(similarities[0])
+    else:
+        return None
+    encontrado = collection.find(
+            {"question": {"$gte":  valor - 0.1,"$lte": valor + 0.1}},{"_id": 0,"id_question": 0,"question":0}
+        )    
+    for doc in encontrado:
+        return doc["answer"]
+    return None
