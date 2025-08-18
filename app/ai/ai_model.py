@@ -58,7 +58,7 @@ def rag_responder(id,pergunta: str) -> str:
             loader = TextLoader(caminho, encoding="utf-8")
             docs.extend(loader.load())
     documentos = docs
-    splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+    splitter = CharacterTextSplitter(chunk_size=10000, chunk_overlap=50)
     docs_divididos = splitter.split_documents(documentos)
     return embedding_text(docs_divididos,pergunta,1) 
 
