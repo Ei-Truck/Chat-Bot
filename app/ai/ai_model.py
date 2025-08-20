@@ -69,6 +69,7 @@ def juiz_resposta(pergunta: str,resposta: str) -> str:
         temperature=0.5,
         google_api_key=chave_api
     )
+
     prompt_juiz = f'''
     Você é um avaliador imparcial. Sua tarefa é revisar a resposta de um tutor de IA.
 
@@ -100,7 +101,6 @@ def juiz_resposta(pergunta: str,resposta: str) -> str:
     Remova o json do inicio da resposta   
 '''
     
-    
     resposta_juiz = juiz([
     HumanMessage(
         content=prompt_juiz + "\n\nPergunta: " + pergunta + "\nResposta: " + resposta
@@ -110,5 +110,5 @@ def juiz_resposta(pergunta: str,resposta: str) -> str:
     if resposta_juiz.startswith("```json"):
         resposta_juiz = resposta_juiz[len("```json"):].rstrip("```").strip()
     return resposta_juiz
-    
+
     

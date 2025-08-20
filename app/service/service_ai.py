@@ -39,6 +39,7 @@ def question_for_gemini(question: str) -> dict:
         {   "timestamp": datetime.now().isoformat(),
             "content":{
                 "answer": final_answer,
+
                 "question": question,
             }
         }
