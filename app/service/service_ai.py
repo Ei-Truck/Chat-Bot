@@ -1,5 +1,5 @@
 from app.ai.ai_model import verifica_pergunta, rag_responder, juiz_resposta, gemini_resp
-from app.ai.embedding import historico_gemini,verifica_historico
+from app.ai.embedding import historico_gemini,verifica_embedding
 from datetime import datetime
 import json
 
@@ -13,7 +13,8 @@ def question_for_gemini(question: str) -> dict:
             }
     # Obtém resposta do RAG
     resposta = rag_responder(user_id,question)
-    encontrado = verifica_historico(user_id,question,resposta[0][0])
+    encontrado = verifica_embedding(user_id,question,resposta[0][0])
+    
     if encontrado == None:
         if resposta[0][1] < 0.5:
             resposta:str = gemini_resp(question)

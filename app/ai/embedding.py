@@ -16,7 +16,6 @@ db = client['hist_embedding']
 # Inicializando o modelo de embeddings
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
-
 # Embedding
 def embedding_text(docs, question, k):
     texts = [doc.page_content for doc in docs]
@@ -44,7 +43,7 @@ def historico_gemini(id,question,answer):
     collection.insert_one(json_mongo)
     return True
 
-def verifica_historico(id,question,answer):
+def verifica_embedding(id,question,answer):
     collection = db[f'hist_usr_{id}']
     embeddings = model.encode(answer)
     embedding_question = model.encode(question)
