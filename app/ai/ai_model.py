@@ -1,9 +1,9 @@
 import google.generativeai as genai
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_community.vectorstores import FAISS 
 from langchain_core.messages import HumanMessage 
 from langchain_community.document_loaders import TextLoader 
-from langchain_text_splitters import CharacterTextSplitter
-from ai.histChat import ChatHistory 
+from langchain_text_splitters import CharacterTextSplitter 
 from dotenv import load_dotenv
 from app.ai.embedding import embedding_text
 import os
@@ -18,10 +18,6 @@ genai.configure(api_key = chave_api)
 
 # Inicia o modelo
 model = genai.GenerativeModel("gemini-2.0-flash")
-
-# Instanciando historico
-chat = ChatHistory()
-
 
 # Verificar pergunta
 def verifica_pergunta(pergunta:str)-> str:
@@ -73,7 +69,7 @@ def juiz_resposta(pergunta: str,resposta: str) -> str:
         temperature=0.5,
         google_api_key=chave_api
     )
-
+    
     prompt_juiz = f'''
     Você é um avaliador imparcial. Sua tarefa é revisar a resposta de um tutor de IA.
 
