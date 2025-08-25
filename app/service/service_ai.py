@@ -11,16 +11,13 @@ hist = ChatHistory()
 def question_for_gemini(question: str) -> dict:
     user_id = "Teste"
 
-    # 🚨 Verificação de conteúdo ofensivo
     if verifica_pergunta(question) == "SIM":
         return {
             "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
         }
 
-    # 🔹 Salva a pergunta no histórico
     hist.armazenar_mensagem("user", question)
 
-    # 🔹 Busca contexto no histórico
     contexto = hist.search_history(question)
     contexto_texto = ""
     if contexto != 0:
@@ -28,14 +25,11 @@ def question_for_gemini(question: str) -> dict:
         for c in contexto:
             contexto_texto += f"{c['user']}: {c['mensage']}\n"
 
-    # 🔹 monta prompt com contexto + pergunta
     prompt = f"{contexto_texto}\nUsuário: {question}\nBot:"
 
-    # 🔹 Obtém resposta do RAG
     resposta = rag_responder(user_id, question)
     resposta_texto, resposta_score = resposta[0]
 
-    # 🔹 Verifica se já existe embedding correspondente
     encontrado = verifica_embedding(user_id, question, resposta_texto)
 
     if encontrado is None:
@@ -45,7 +39,6 @@ def question_for_gemini(question: str) -> dict:
         else:
             resposta_texto = resposta_texto
 
-        # Juiz de resposta (se existir lógica de validação extra)
         judgment: str = juiz_resposta(prompt, resposta_texto)
         
         juiz = json.loads(judgment)
