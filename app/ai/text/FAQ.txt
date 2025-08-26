@@ -120,3 +120,21 @@ Principais Fornecedores de Telemetria. Os principais fornecedores de telemetria 
 Controle de Pneus. É possível fazer o controle de pneus com sensores de pressão e temperatura ou via inspeções baseadas em dados de uso.
 Auxílio do Sistema no Controle de Multas. O sistema ajuda no controle de multas ao monitorar excesso de velocidade, uso de cinto e outros comportamentos que geram infrações.
 Necessidade de Treinamento para Uso do Sistema. É necessário treinamento para usar o sistema , pois os usuários precisam ser treinados para aproveitar todo o potencial da plataforma de monitoramento.
+
+O EiTruck é uma iniciativa desenvolvida por estudantes do ensino médio que surgiu a partir da necessidade de aprimorar a eficiência no gerenciamento de equipes de manutenção no setor de transporte. O projeto tem como propósito central oferecer soluções inovadoras que possibilitem maior organização operacional, agilidade no acompanhamento de atividades e suporte na tomada de decisões estratégicas. Um dos principais diferenciais da proposta é a integração com sistemas de telemetria veicular, que permitem o monitoramento em tempo real por meio de câmeras e sensores embarcados. Esses recursos tecnológicos geram alertas automáticos diante de situações críticas, como falhas técnicas ou incidentes operacionais. Dessa forma, a plataforma do EiTruck atua como um intermediário eficaz na comunicação entre os gestores e as equipes de campo, facilitando a análise de dados, a identificação de problemas e a adoção de medidas corretivas imediatas. Ao unir tecnologia e gestão, o EiTruck busca não apenas reduzir o tempo de resposta a ocorrências, mas também promover maior segurança, confiabilidade e transparência nos processos de manutenção. Trata-se, portanto, de um projeto que alia inovação tecnológica, visão empreendedora e aplicação prática de conhecimentos adquiridos no ambiente escolar, refletindo o potencial transformador da educação voltada para soluções reais do mercado.
+
+
+Os integrantes do EiTruck são:
+    - Ana
+    - Beatriz Dias
+    - Bruno Urias
+    - Daniel Severo
+    - Giovana Quirino
+    - Igor Quinto
+    - Isabela
+    - João Camargo
+    - Marcelo
+    - Matheus
+    - Miguel
+    - Samuel
+    - Verena
