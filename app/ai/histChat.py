@@ -5,7 +5,7 @@ import numpy as np
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 
-# Historico de chat no Redis
+# Histórico de chat
 class ChatHistory:
     def __init__(self):
         self.history = []
@@ -20,7 +20,8 @@ class ChatHistory:
         query_embedding = model.encode(query)
         try:
             similarities = np.dot(self.embeddings, query_embedding)
-            top_indicies = np.argsort(similarities)[::-1][:3]
-            return [self.history[i] for i in top_indicies]
-        except:
-            return 0
+            top_indices = np.argsort(similarities)[::-1][:3]
+            return [self.history[i] for i in top_indices]
+        except Exception as e:
+            print("Erro ao buscar histórico:", e)
+            return []
