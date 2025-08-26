@@ -38,7 +38,7 @@ jobs:
     - name: Start Flask app (via main.py)
       run: |
         nohup python main.py > flask.log 2>&1 &
-        sleep 5
+        sleep 10
 
     - name: Health check Flask
       run: |
