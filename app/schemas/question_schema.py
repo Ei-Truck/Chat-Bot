@@ -11,3 +11,8 @@ class AskSchema(Schema):
         "null": "field 'user_id' cannot be null.",
         "invalid": "field 'user_id' must be a integer."
     })
+    session_id = fields.Int(required=True, error_messages={
+        "required": "field 'session_id' is required.",
+        "null": "field 'session_id' cannot be null.",
+        "invalid":"field 'session_id' must be a integer."
+    })
