@@ -8,7 +8,7 @@ import json
 hist = ChatHistory()
 
 # Service
-def question_for_gemini(question: str, id_user: int) -> dict:
+def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
     user_id = str(id_user)
 
     if verifica_pergunta(question) == "SIM":
