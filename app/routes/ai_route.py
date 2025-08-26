@@ -13,7 +13,6 @@ def health():
 @routes.route("/chat", methods=["POST"])
 def chat():
     data:dict = request.get_json()
-
     try:
         validate_data = AskSchema().load(data)
     except ValidationError as err:
