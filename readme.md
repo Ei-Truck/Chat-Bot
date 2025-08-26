@@ -14,13 +14,15 @@ app/
 ├── ai/
 │   ├── text/
 │   │   └── FAQ.txt
-│   └── ai\_model.py
+│   └── ai_model.py
+│   └── embedding.py
+│   └── histChat.py
 ├── config/
 │   └── config.py
 ├── routes/
-│   └── ai\_route.py
+│   └── ai_route.py
 ├── schemas/
-│   └── question\_schema.py
+│   └── question_schema.py
 ├── service/
 │   └── service\_ai.py
 ├── **init**.py
@@ -79,7 +81,8 @@ app/
 
   ```json
   {
-    "question": "Sua pergunta aqui"
+    "question": "Sua pergunta aqui",
+    "user_id": 1
   }
   ```
 
@@ -89,7 +92,6 @@ app/
 {
   "timestamp": "2023-10-01T12:00:00",
   "content": {
-    "status": "Aprovado/Desaprovada pelo juiz de IA",
     "answer": "Resposta gerada pela IA se aprovada, ou resposta gerada pelo juiz se desaprovada",
     "question": "Sua pergunta aqui"
   }
