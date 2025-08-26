@@ -16,7 +16,7 @@ def question_for_gemini(question: str, id_user: int) -> dict:
             "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
         }
 
-    hist.armazenar_mensagem("user", question)
+    hist.armazenar_mensagem(id_user, question)
 
     contexto = hist.search_history(question)
     contexto_texto = ""
