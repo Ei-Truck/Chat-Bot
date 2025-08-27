@@ -9,7 +9,6 @@ hist = ChatHistory()
 
 # Service
 def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
-    user_id = str(id_user)
 
     if verifica_pergunta(question) == "SIM":
         return {
@@ -27,7 +26,7 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
 
     prompt = f"{contexto_texto}\nUsuário: {question}\nBot:"
 
-    resposta = rag_responder(user_id, question)
+    resposta = rag_responder(id_user, question)
     resposta_texto, resposta_score = resposta[0]
 
     encontrado = verifica_embedding(question)

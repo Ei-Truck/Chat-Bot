@@ -25,26 +25,32 @@ class ChatHistory:
         
     def armazenar_mensagem(self,id_user,id_session,msg):
         try:
-            self.history.append({"user":f"{id_user}_{id_session}","mensage":msg})
             collection = db[f'history_user_{id_user}_{id_session}']
+            embedding = model.encode(msg)
+
             json = {
                 {"_id": f"{id_user}_{id_session}"},
-                {"$push": {"messages": msg}}
+                {"user":id_user},
+                {"$push": {"embedding":embedding.tolist()}},
+                {"$push": {"message": msg}}
             }
             collection.update_one(
                 json,  
                 upsert=True                           
             )
-            embedding = model.encode(msg)
-            self.embeddings.append(embedding)
-        except:
-            pass
+        except Exception as e:
+            print(e)
         
-    def search_history(id_user,id_session,self,query):
-        query_embedding = model.encode(query)
+    def search_history(id_user,id_session,self,msg):
+        collection = db[f'history_user_{id_user}_{id_session}']
+        query_embedding = model.encode(msg)
         try:
-            similarities = np.dot(self.embeddings,query_embedding)
-            top_indicies = np.argsort(similarities)[::-1][:3]
-            return [self.history[i] for i in top_indicies]
+            doc = collection.find_one({"_id": f"{id_user}_{id_session}"}, {"_id": 0, "embedding": 1})
+            if not doc:
+                return "Ainda sem memória, chat novo" 
+            embeddings = np.array(doc["embedding"])
+            similarities = np.dot(embeddings, query_embedding)
+            top_indices = np.argsort(similarities)[::-1][:3]
+            return [self.history[i] for i in top_indices]
         except:
-            return 0
+            return "Ainda sem memória, chat novo"
