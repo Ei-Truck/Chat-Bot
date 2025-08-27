@@ -16,8 +16,9 @@ db = client['hist_chat']
 
 # Inicializando o modelo de embeddings
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-    
-#Historico de chat no Redis  
+
+
+# Histórico de chat
 class ChatHistory:
     def __init__(self):
         pass

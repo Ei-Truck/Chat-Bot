@@ -9,22 +9,28 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configura a conexão com o mongo
-host_mongo = os.getenv("MONGO_HOST")
-client = MongoClient(host=host_mongo)
-db = client['hist_embedding']
-collection = db['hist_embedded']
+host_mongo = os.getenv("MONGO_HOST", "localhost")
+port_mongo = int(os.getenv("MONGO_PORT", "27017"))
+password_mongo = os.getenv("MONGO_PASSWORD", "")
+user_mongo = os.getenv("MONGO_USER", "")
+
+client = MongoClient(
+    host=host_mongo, port=int(port_mongo), username=user_mongo, password=password_mongo
+)
+db = client["hist_embedding"]
 
 
 # Inicializando o modelo de embeddings
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+
 
 # Embedding
 def embedding_text(docs, question, k):
     texts = [doc.page_content for doc in docs]
     embeddings = model.encode(texts)
     embedding_question = model.encode(question)
-    embeddings = np.array(embeddings)                  
-    embedding_question = np.array(embedding_question).reshape(1, -1)  
+    embeddings = np.array(embeddings)
+    embedding_question = np.array(embedding_question).reshape(1, -1)
     similarities = cosine_similarity(embeddings, embedding_question).flatten()
     top_k_indices = similarities.argsort()[-k:][::-1]
     return [(texts[0], similarities[0]) for i in top_k_indices]

@@ -6,13 +6,15 @@ from app.service.service_ai import question_for_gemini
 
 routes = Blueprint("routes", __name__)
 
+
 @routes.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "OK"}), 200
 
+
 @routes.route("/chat", methods=["POST"])
 def chat():
-    data:dict = request.get_json()
+    data: dict = request.get_json()
     try:
         validate_data = AskSchema().load(data)
     except ValidationError as err:
