@@ -16,9 +16,9 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
             "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
         }
 
-    hist.armazenar_mensagem(id_user, question)
+    hist.armazenar_mensagem(id_user,id_session,question)
 
-    contexto = hist.search_history(question)
+    contexto = hist.search_history(id_user,id_session,question)
     contexto_texto = ""
     if contexto != 0:
         contexto_texto = "Contexto de conversas anteriores:\n"
@@ -30,7 +30,7 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
     resposta = rag_responder(user_id, question)
     resposta_texto, resposta_score = resposta[0]
 
-    encontrado = verifica_embedding(user_id, question, resposta_texto)
+    encontrado = verifica_embedding(question)
 
     if encontrado is None:
         if resposta_score < 0.5:
@@ -49,8 +49,8 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
         elif status == "Reprovado":
             final_answer = juiz["judgmentAnswer"]
         
-        historico_gemini(user_id,question,str(final_answer))
-        hist.armazenar_mensagem("bot", str(final_answer))
+        historico_gemini(question,str(final_answer))
+        hist.armazenar_mensagem("bot",id_session, str(final_answer))
     else:
         final_answer = encontrado
         

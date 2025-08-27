@@ -32,7 +32,7 @@ def embedding_text(docs, question, k):
 
 def historico_gemini(question,answer):
     embedding_question = model.encode(question)
-    embedding_question = np.array(embedding_question).reshape(1, -1)
+    embedding_question = np.array(embedding_question).reshape(1, -1).tolist()
     json_mongo = {
                 "question":embedding_question,
                 "answer":answer
@@ -42,10 +42,10 @@ def historico_gemini(question,answer):
 
 def verifica_embedding(question):
     embedding_question = model.encode(question)
-    embedding_question = np.array(embedding_question).reshape(1, -1)
+    embedding_question = np.array(embedding_question).reshape(1, -1).tolist()
     
     encontrado = collection.find(
-            {"_id": 0,"id_question": 0,"question":0}
+            {"_id": 0,"answer":0}
         ) 
     
     maior_similaridade = 0
@@ -55,11 +55,12 @@ def verifica_embedding(question):
         if similarities > maior_similaridade:
             maior_similaridade = similarities
             user_question = x[0]
-    
-    encontrado = collection.find(
-        {"question":user_question},  {"_id": 0,"id_question": 0,"question":0}
+            
+    if maior_similaridade!=0:
+        encontrado = collection.find(
+            {"question":user_question},  {"_id": 0,"id_question": 0,"question":0}
         ) 
     
-    for doc in encontrado:
-        return doc["answer"]
+        for doc in encontrado:
+            return doc["answer"]
     return None

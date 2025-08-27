@@ -11,6 +11,7 @@ load_dotenv()
 # Configura a conexão com o mongo
 host_mongo = os.getenv("MONGO_HOST")
 client = MongoClient(host=host_mongo)
+
 db = client['hist_chat']
 
 # Inicializando o modelo de embeddings
@@ -23,15 +24,21 @@ class ChatHistory:
         self.embeddings = []
         
     def armazenar_mensagem(self,id_user,id_session,msg):
-        self.history.append({"user":f"{id_user}_{id_session}","mensage":msg})
-        collection = db[f'history_user_{id_user}_{id_session}']
-        json = {
-            "_id":f"{id_user}_{id_session}",
-            "mensage":msg
-        }
-        collection._insert_one(doc=json,session=id_session)
-        embedding = model.encode(msg)
-        self.embeddings.append(embedding)
+        try:
+            self.history.append({"user":f"{id_user}_{id_session}","mensage":msg})
+            collection = db[f'history_user_{id_user}_{id_session}']
+            json = {
+                {"_id": f"{id_user}_{id_session}"},
+                {"$push": {"messages": msg}}
+            }
+            collection.update_one(
+                json,  
+                upsert=True                           
+            )
+            embedding = model.encode(msg)
+            self.embeddings.append(embedding)
+        except:
+            pass
         
     def search_history(id_user,id_session,self,query):
         query_embedding = model.encode(query)
