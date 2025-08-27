@@ -19,12 +19,23 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
 
     contexto = hist.search_history(id_user,id_session,question)
     contexto_texto = ""
-    if contexto != 0:
+    if contexto:
         contexto_texto = "Contexto de conversas anteriores:\n"
         for c in contexto:
-            contexto_texto += f"{c['user']}: {c['mensage']}\n"
-
-    prompt = f"{contexto_texto}\nUsuário: {question}\nBot:"
+            if not c:
+                continue
+            if isinstance(c, dict):
+                c_dict = c
+            elif isinstance(c, str):
+                try:
+                    c_dict = json.loads(c)
+                except json.JSONDecodeError:
+                    c_dict = {"user": id_user, "mensagem": c}
+            else:
+                continue
+        contexto_texto += f"{c_dict['user']}: {c_dict['mensagem']}\n"
+        
+    prompt = f"{contexto_texto}\nUsuário: {question}"
 
     resposta = rag_responder(id_user, question)
     resposta_texto, resposta_score = resposta[0]
@@ -49,7 +60,7 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
             final_answer = juiz["judgmentAnswer"]
         
         historico_gemini(question,str(final_answer))
-        hist.armazenar_mensagem("bot",id_session, str(final_answer))
+        hist.armazenar_mensagem(id_user,id_session, str(final_answer))
     else:
         final_answer = encontrado
         
