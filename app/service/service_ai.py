@@ -1,11 +1,12 @@
 from app.ai.ai_model import verifica_pergunta, rag_responder, juiz_resposta, gemini_resp
-from app.ai.embedding import historico_gemini,verifica_embedding
+from app.ai.embedding import historico_gemini, verifica_embedding
 from app.ai.histChat import ChatHistory
 from datetime import datetime
 import json
 
 # Instanciando histórico
 hist = ChatHistory()
+
 
 # Service
 def question_for_gemini(question: str, id_user: int) -> dict:
@@ -40,7 +41,7 @@ def question_for_gemini(question: str, id_user: int) -> dict:
             resposta_texto = resposta_texto
 
         judgment: str = juiz_resposta(prompt, resposta_texto)
-        
+
         juiz = json.loads(judgment)
         status = juiz["status"]
 
@@ -48,18 +49,16 @@ def question_for_gemini(question: str, id_user: int) -> dict:
             final_answer = juiz["answer"]
         elif status == "Reprovado":
             final_answer = juiz["judgmentAnswer"]
-        
-        historico_gemini(user_id,question,str(final_answer))
+
+        historico_gemini(user_id, question, str(final_answer))
         hist.armazenar_mensagem("bot", str(final_answer))
     else:
         final_answer = encontrado
-        
 
-    return \
-        {   "timestamp": datetime.now().isoformat(),
-            "content":{
-                "answer": final_answer,
-
-                "question": question,
-            }
-        }
+    return {
+        "timestamp": datetime.now().isoformat(),
+        "content": {
+            "answer": final_answer,
+            "question": question,
+        },
+    }

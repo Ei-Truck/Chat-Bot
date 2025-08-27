@@ -6,19 +6,23 @@ from app.service.service_ai import question_for_gemini
 
 routes = Blueprint("routes", __name__)
 
+
 @routes.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "OK"}), 200
 
+
 @routes.route("/chat", methods=["POST"])
 def chat():
-    data:dict = request.get_json()
+    data: dict = request.get_json()
     try:
         validate_data = AskSchema().load(data)
     except ValidationError as err:
         return jsonify({"error": str(err)}), 400
 
-    answer:dict = question_for_gemini(validate_data["question"], validate_data["user_id"])
+    answer: dict = question_for_gemini(
+        validate_data["question"], validate_data["user_id"]
+    )
 
     if not answer:
         return jsonify({"error": "Failed to generate answer"}), 500
