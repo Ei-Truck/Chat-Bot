@@ -3,6 +3,11 @@
 
 Bem-vindo à documentação do projeto! Aqui você encontra tudo o que precisa pra rodar, entender e usar essa aplicação com IA no Flask.
 
+
+
+#### BRANCH DE DEPLOY IN QA - NÃO MERGEAR NA MAIN
+As funcionalidades novas são mergeadas aqui, para serem deployadas em qa. Logo após testar essas funcionalidades em QA, mergeie A BRANCH DA FUNCIONALIDADE, com a main.
+
 ---
 
 ## 📁 Estrutura do Projeto
