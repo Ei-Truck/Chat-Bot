@@ -16,8 +16,6 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
             "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
         }
 
-    hist.armazenar_mensagem(id_user,id_session,question)
-
     contexto = hist.search_history(id_user,id_session,question)
     contexto_texto = ""
     if contexto:
@@ -61,7 +59,10 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
             final_answer = juiz["judgmentAnswer"]
         
         historico_gemini(question,str(final_answer))
+        
+        hist.armazenar_mensagem(id_user,id_session,question)
         hist.armazenar_mensagem(id_user,id_session, str(final_answer))
+        
     else:
         final_answer = encontrado
 

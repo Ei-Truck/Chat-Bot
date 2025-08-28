@@ -10,14 +10,15 @@ load_dotenv()
 
 # Configura a conexão com o mongo
 host_mongo = os.getenv("MONGO_HOST", "localhost")
-port_mongo = int(os.getenv("MONGO_PORT", "27017"))
+port_mongo = os.getenv("MONGO_PORT", 27017)
 password_mongo = os.getenv("MONGO_PASSWORD", "")
 user_mongo = os.getenv("MONGO_USER", "")
 
 client = MongoClient(
-    host=host_mongo, port=int(port_mongo), username=user_mongo, password=password_mongo
+    host=host_mongo
 )
 db = client["hist_embedding"]
+collection = db['history_embedded']
 
 
 # Inicializando o modelo de embeddings
