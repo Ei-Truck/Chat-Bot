@@ -22,7 +22,6 @@ dotenv~=0.9.9
 
 # Utilidades
 marshmallow~=3.26.1
-faiss-cpu==1.7.4  
 sentence-transformers>=2.6.1
 transformers==4.39.3
 huggingface_hub==0.20.3
