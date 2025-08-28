@@ -10,22 +10,26 @@ load_dotenv()
 
 # Configura a conexão com o mongo
 host_mongo = os.getenv("MONGO_HOST", "localhost")
-port_mongo = int(os.getenv("MONGO_PORT", "27017"))
+port_mongo = os.getenv("MONGO_PORT", 27017)
 password_mongo = os.getenv("MONGO_PASSWORD", "")
 user_mongo = os.getenv("MONGO_USER", "")
 
 client = MongoClient(
-    host=host_mongo, port=int(port_mongo), username=user_mongo, password=password_mongo
+    host=host_mongo
 )
 db = client["hist_embedding"]
+collection = db['history_embedded']
 
 
 # Inicializando o modelo de embeddings
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+def get_model():
+    _model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+    return _model
 
 
 # Embedding
 def embedding_text(docs, question, k):
+    model = get_model()
     texts = [doc.page_content for doc in docs]
     embeddings = model.encode(texts)
     embedding_question = model.encode(question)
@@ -37,6 +41,7 @@ def embedding_text(docs, question, k):
 
 
 def historico_gemini(question,answer):
+    model = get_model()
     embedding_question = model.encode(question)
     embedding_question = np.array(embedding_question).reshape(1, -1).tolist()
     json_mongo = {
@@ -47,6 +52,7 @@ def historico_gemini(question,answer):
     return True
 
 def verifica_embedding(question):
+    model = get_model()
     embedding_question = model.encode(question)
     embedding_question = np.array(embedding_question).reshape(1, -1).tolist()
     
