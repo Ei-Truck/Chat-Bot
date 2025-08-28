@@ -22,11 +22,14 @@ collection = db['history_embedded']
 
 
 # Inicializando o modelo de embeddings
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+def get_model():
+    _model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+    return _model
 
 
 # Embedding
 def embedding_text(docs, question, k):
+    model = get_model()
     texts = [doc.page_content for doc in docs]
     embeddings = model.encode(texts)
     embedding_question = model.encode(question)
@@ -38,6 +41,7 @@ def embedding_text(docs, question, k):
 
 
 def historico_gemini(question,answer):
+    model = get_model()
     embedding_question = model.encode(question)
     embedding_question = np.array(embedding_question).reshape(1, -1).tolist()
     json_mongo = {
@@ -48,6 +52,7 @@ def historico_gemini(question,answer):
     return True
 
 def verifica_embedding(question):
+    model = get_model()
     embedding_question = model.encode(question)
     embedding_question = np.array(embedding_question).reshape(1, -1).tolist()
     
