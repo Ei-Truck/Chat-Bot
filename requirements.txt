@@ -24,7 +24,7 @@ dotenv~=0.9.9
 marshmallow~=3.26.1
 faiss-cpu==1.7.4  
 sentence-transformers>=2.6.1
-transformers==4.41.2
+transformers==4.39.3
 huggingface_hub==0.20.3
 pymongo~=4.4.0
 prompt_toolkit==3.0.38
