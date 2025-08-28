@@ -19,6 +19,7 @@ client = MongoClient(
 )
 db = client["hist_embedding"]
 
+
 # Inicializando o modelo de embeddings
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
@@ -35,37 +36,37 @@ def embedding_text(docs, question, k):
     return [(texts[0], similarities[0]) for i in top_k_indices]
 
 
-def historico_gemini(id, question, answer):
-    collection = db[f"hist_usr_{id}"]
-    embeddings = model.encode(answer)
+def historico_gemini(question,answer):
     embedding_question = model.encode(question)
-    embeddings = np.array(embeddings).reshape(1, -1)
-    embedding_question = np.array(embedding_question).reshape(1, -1)
-    similarities = cosine_similarity(embeddings, embedding_question).flatten()
+    embedding_question = np.array(embedding_question).reshape(1, -1).tolist()
     json_mongo = {
-        "id_question": id,
-        "question": float(similarities[0]),
-        "answer": answer,
-    }
+                "question":embedding_question,
+                "answer":answer
+            }
     collection.insert_one(json_mongo)
     return True
 
-
-def verifica_embedding(id, question, answer):
-    collection = db[f"hist_usr_{id}"]
-    embeddings = model.encode(answer)
+def verifica_embedding(question):
     embedding_question = model.encode(question)
-    embeddings = np.array(embeddings).reshape(1, -1)
-    embedding_question = np.array(embedding_question).reshape(1, -1)
-    similarities = cosine_similarity(embeddings, embedding_question).flatten()
-    if similarities[0] > 0.5:
-        valor = float(similarities[0])
-    else:
-        return None
+    embedding_question = np.array(embedding_question).reshape(1, -1).tolist()
+    
     encontrado = collection.find(
-        {"question": {"$gte": valor - 0.1, "$lte": valor + 0.1}},
-        {"_id": 0, "id_question": 0, "question": 0},
-    )
-    for doc in encontrado:
-        return doc["answer"]
+            {"_id": 0,"answer":0}
+        ) 
+    
+    maior_similaridade = 0
+    
+    for x in encontrado:
+        similarities = cosine_similarity(x[0], embedding_question).flatten()
+        if similarities > maior_similaridade:
+            maior_similaridade = similarities
+            user_question = x[0]
+            
+    if maior_similaridade!=0:
+        encontrado = collection.find(
+            {"question":user_question},  {"_id": 0,"id_question": 0,"question":0}
+        ) 
+    
+        for doc in encontrado:
+            return doc["answer"]
     return None

@@ -39,7 +39,7 @@ def verifica_pergunta(pergunta: str) -> str:
 # Responder com o gemini
 def gemini_resp(pergunta: str) -> str:
     normal_chat = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         temperature=0.5,
         google_api_key=chave_api
     )
@@ -71,7 +71,7 @@ def rag_responder(id, pergunta: str) -> str:
 # Verificar Resposta
 def juiz_resposta(pergunta: str, resposta: str) -> str:
     juiz = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         temperature=0.5,
         google_api_key=chave_api
     )

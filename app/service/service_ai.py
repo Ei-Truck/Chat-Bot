@@ -9,29 +9,39 @@ hist = ChatHistory()
 
 
 # Service
-def question_for_gemini(question: str, id_user: int) -> dict:
-    user_id = str(id_user)
+def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
 
     if verifica_pergunta(question) == "SIM":
         return {
             "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
         }
 
-    hist.armazenar_mensagem("user", question)
+    hist.armazenar_mensagem(id_user,id_session,question)
 
-    contexto = hist.search_history(question)
+    contexto = hist.search_history(id_user,id_session,question)
     contexto_texto = ""
-    if contexto != 0:
+    if contexto:
         contexto_texto = "Contexto de conversas anteriores:\n"
         for c in contexto:
-            contexto_texto += f"{c['user']}: {c['mensage']}\n"
+            if not c:
+                continue
+            if isinstance(c, dict):
+                c_dict = c
+            elif isinstance(c, str):
+                try:
+                    c_dict = json.loads(c)
+                except json.JSONDecodeError:
+                    c_dict = {"user": id_user, "mensagem": c}
+            else:
+                continue
+        contexto_texto += f"{c_dict['user']}: {c_dict['mensagem']}\n"
+        
+    prompt = f"{contexto_texto}\nUsuário: {question}"
 
-    prompt = f"{contexto_texto}\nUsuário: {question}\nBot:"
-
-    resposta = rag_responder(user_id, question)
+    resposta = rag_responder(id_user, question)
     resposta_texto, resposta_score = resposta[0]
 
-    encontrado = verifica_embedding(user_id, question, resposta_texto)
+    encontrado = verifica_embedding(question)
 
     if encontrado is None:
         if resposta_score < 0.5:
@@ -49,9 +59,9 @@ def question_for_gemini(question: str, id_user: int) -> dict:
             final_answer = juiz["answer"]
         elif status == "Reprovado":
             final_answer = juiz["judgmentAnswer"]
-
-        historico_gemini(user_id, question, str(final_answer))
-        hist.armazenar_mensagem("bot", str(final_answer))
+        
+        historico_gemini(question,str(final_answer))
+        hist.armazenar_mensagem(id_user,id_session, str(final_answer))
     else:
         final_answer = encontrado
 
