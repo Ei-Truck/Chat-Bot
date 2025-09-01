@@ -1,4 +1,4 @@
-from langchain_community.chat_message_histories import MongoDBChatMessageHistory
+from langchain_mongodb import MongoDBChatMessageHistory
 from sentence_transformers import SentenceTransformer
 from pymongo import MongoClient
 import os
@@ -36,6 +36,15 @@ def get_chat_hist(id_user,id_session):
 
 # Metodos
 
+def get_session_history(session_id):
+    history = get_chat_hist(user_id=None, session_id=session_id)
+    messages = []
+    for msg in history:
+        if isinstance(msg, dict):
+            messages.append({"role": "user", "content": msg.get("mensagem", "")})
+        elif isinstance(msg, str):
+            messages.append({"role": "user", "content": msg})
+    return messages
 
 def salvar_historico(id_user,session_id,question,answer):
     

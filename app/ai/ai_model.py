@@ -55,7 +55,7 @@ def gemini_resp(pergunta: str) -> str:
 
 
 # Utilizar o RAG
-def rag_responder(pergunta: str) -> str:
+def rag_responder(pergunta: str):
     docs = []
     pasta = "app/ai/text/"
     for nome in os.listdir(pasta):
@@ -65,7 +65,7 @@ def rag_responder(pergunta: str) -> str:
             docs.extend(loader.load())
     splitter = CharacterTextSplitter(chunk_size=10000, chunk_overlap=50)
     docs_divididos = splitter.split_documents(docs)
-    return embedding_text(docs_divididos, pergunta, 1)
+    return embedding_text(pergunta)
 
 
 # Verificar Resposta
