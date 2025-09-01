@@ -9,47 +9,44 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configura a conexão com o mongo
-host_mongo = os.getenv("MONGO_HOST", "localhost")
-port_mongo = os.getenv("MONGO_PORT", 27017)
-password_mongo = os.getenv("MONGO_PASSWORD", "")
-user_mongo = os.getenv("MONGO_USER", "")
+conn_string = os.getenv("CONNSTRING")
 
-client = MongoClient(
-    host=host_mongo
-)
+client = MongoClient(conn_string)
+
 db = client["hist_embedding"]
 collection = db['history_embedded']
 
 
 # Inicializando o modelo de embeddings
 def get_model():
-    _model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-    return _model
+    return SentenceTransformer("paraphrase-MiniLM-L3-v2")
+    
 
 
 # Embedding
-def embedding_text(docs, question, k):
+def embedding_docs(docs):
     model = get_model()
     texts = [doc.page_content for doc in docs]
     embeddings = model.encode(texts)
-    embedding_question = model.encode(question)
-    embeddings = np.array(embeddings)
-    embedding_question = np.array(embedding_question).reshape(1, -1)
-    similarities = cosine_similarity(embeddings, embedding_question).flatten()
-    top_k_indices = similarities.argsort()[-k:][::-1]
-    return [(texts[0], similarities[0]) for i in top_k_indices]
-
-
-def historico_gemini(question,answer):
-    model = get_model()
-    embedding_question = model.encode(question)
-    embedding_question = np.array(embedding_question).reshape(1, -1).tolist()
-    json_mongo = {
-                "question":embedding_question,
-                "answer":answer
+    for doc in docs:
+        json_mongo = {
+                "embedding":embeddings,
+                "answer":texts
             }
-    collection.insert_one(json_mongo)
+        collection.insert_one(json_mongo)
     return True
+
+def embedding_text(question,k=1):
+    model = get_model()
+    documentos = collection.find({})
+    embedding_question = model.encode(question)
+    for doc in documentos:
+        texts = doc['embedding']
+        similarities = cosine_similarity([embedding_question], texts).flatten()
+        top_indices = np.argsort(similarities)[::-1][:k]
+        respostas = [doc['answer'][i] for i in top_indices]
+    return respostas
+    
 
 def verifica_embedding(question):
     model = get_model()
@@ -57,7 +54,7 @@ def verifica_embedding(question):
     embedding_question = np.array(embedding_question).reshape(1, -1).tolist()
     
     encontrado = collection.find(
-            {"_id": 0,"answer":0}
+            {"_id": 0,"embedding":1,"answer":1}
         ) 
     
     maior_similaridade = 0
@@ -66,11 +63,11 @@ def verifica_embedding(question):
         similarities = cosine_similarity(x[0], embedding_question).flatten()
         if similarities > maior_similaridade:
             maior_similaridade = similarities
-            user_question = x[0]
+            user_answer = x[0]
             
     if maior_similaridade!=0:
         encontrado = collection.find(
-            {"question":user_question},  {"_id": 0,"id_question": 0,"question":0}
+            {"question":user_answer},  {"_id": 0,"id_question": 0,"question":0}
         ) 
     
         for doc in encontrado:

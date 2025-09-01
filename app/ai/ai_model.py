@@ -13,7 +13,7 @@ load_dotenv()
 chave_api = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=chave_api)
 
-# Inicia o modelo
+# Inicia o modelo e memoria
 model = genai.GenerativeModel("gemini-2.0-flash")
 
 
@@ -55,7 +55,7 @@ def gemini_resp(pergunta: str) -> str:
 
 
 # Utilizar o RAG
-def rag_responder(id, pergunta: str) -> str:
+def rag_responder(pergunta: str) -> str:
     docs = []
     pasta = "app/ai/text/"
     for nome in os.listdir(pasta):

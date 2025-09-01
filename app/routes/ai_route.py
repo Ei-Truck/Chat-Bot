@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from prompt_toolkit.validation import ValidationError
+from marshmallow import ValidationError
 from app.schemas.question_schema import AskSchema
 from app.service.service_ai import question_for_gemini
 

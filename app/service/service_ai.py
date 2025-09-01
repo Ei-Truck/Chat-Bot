@@ -1,16 +1,26 @@
 from app.ai.ai_model import verifica_pergunta, rag_responder, juiz_resposta, gemini_resp
-from app.ai.embedding import historico_gemini, verifica_embedding
-from app.ai.histChat import ChatHistory
+from app.ai.embedding import verifica_embedding
+import google.generativeai as genai
+from langchain.memory import ConversationBufferMemory
+from langchain.chains.conversation.base import ConversationChain
+from app.ai.histChat import ChatHistory, salvar_historico,get_chat_hist
 from datetime import datetime
 import json
 
 # Instanciando histórico
 hist = ChatHistory()
 
+model = genai.GenerativeModel("gemini-2.0-flash")
+context = ConversationBufferMemory()
+
 
 # Service
 def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
+    
+    memory = ConversationBufferMemory(chat_memory=get_chat_hist(id_user,id_session),return_messages=True)
+    conversation = ConversationChain(llm=model,memory=memory)
 
+    conversation.run(question)
     if verifica_pergunta(question) == "SIM":
         return {
             "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
@@ -58,10 +68,8 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
         elif status == "Reprovado":
             final_answer = juiz["judgmentAnswer"]
         
-        historico_gemini(question,str(final_answer))
-        
-        hist.armazenar_mensagem(id_user,id_session,question)
-        hist.armazenar_mensagem(id_user,id_session, str(final_answer))
+        salvar_historico(id_user,id_session,question,final_answer)
+        context.save_context({"question":question},{"answer":final_answer})
         
     else:
         final_answer = encontrado
