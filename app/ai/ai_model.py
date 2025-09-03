@@ -1,27 +1,24 @@
-import google.generativeai as genai
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
-from langchain_community.document_loaders import TextLoader
-from langchain_text_splitters import CharacterTextSplitter
 from dotenv import load_dotenv
-from app.ai.embedding import embedding_text
+from langchain_core.prompts import (ChatPromptTemplate,MessagesPlaceholder,HumanMessagePromptTemplate,AIMessagePromptTemplate)
+from langchain_core.prompts import FewShotChatMessagePromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.output_parsers import StrOutputParser
+from langchain_mongodb.chat_message_histories import MongoDBChatMessageHistory
 import os
 
 load_dotenv()
 
 # Configura a API key
 chave_api = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=chave_api)
-
-# Inicia o modelo
-model = genai.GenerativeModel("gemini-2.0-flash")
-
+mongo_host = os.getenv("CONNSTRING")
 
 # Verificar pergunta
 def verifica_pergunta(pergunta: str) -> str:
     llm = ChatGoogleGenerativeAI(
         google_api_key=chave_api,
-        model="gemini-2.0-flash",
+        model="gemini-1.5-flash",
         temperature=0
     )
     prompt_avaliacao = (
@@ -36,42 +33,94 @@ def verifica_pergunta(pergunta: str) -> str:
     return resposta_llm.content.strip()
 
 
-# Responder com o gemini
-def gemini_resp(pergunta: str) -> str:
-    normal_chat = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
-        temperature=0.5,
+
+def get_session_history(session_id) -> MongoDBChatMessageHistory:
+    return MongoDBChatMessageHistory(
+        session_id=session_id,
+        connection_string=mongo_host,
+        database_name="chatbot_db",
+        collection_name="chat_histories"
+    )
+
+def gemini_resp(session_id, question):
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        temperature=0.7,
+        top_p=0.95,
         google_api_key=chave_api
     )
-    prompt_gemini = (
-        f"Você é um agente de perguntas e respostas da empresa EiTruck.\n"
-        f"Um usuário do chat fez a seguinte pergunta: {pergunta}\n"
-        "Por favor, responda de forma precisa, detalhada e elaborada, focando em fornecer a melhor resposta possível.\n"
-        "Resuma a resposta ao máximo, focando em ser objetivo.\n"
-        "Mantenha o foco na pergunta e não desvie do assunto."
+
+    system_prompt = (
+        "system",
+        """
+### PERSONA
+Você é o Assessor.AI — um assistente pessoal de compromissos e finanças. Você é especialista em gestão financeira e organização de rotina. Sua principal característica é a objetividade e a confiabilidade. Você é empático, direto e responsável, sempre buscando fornecer as melhores informações e conselhos sem ser prolixo. Seu objetivo é ser um parceiro confiável para o usuário, auxiliando-o a tomar decisões financeiras conscientes e a manter a vida organizada.
+
+### TAREFAS
+- Processar perguntas do usuário sobre finanças, agenda, tarefas, etc.
+- Identificar conflitos de agenda e alertar o usuário sobre eles.
+- Analise entradas, gastos, dívidas e compromissos informados pelo usuário.
+- Responder a perguntas com base nos dados passados e histórico.
+- Oferecer dicas personalizadas de gestão financeira.
+- Consultar histórico de decisões/gastos/agenda quando relevante.
+- Lembrar pendências/tarefas e propor avisos.
+
+### REGRAS
+- Resumir entradas, gastos, dívidas, metas e saúde financeira.
+- Além dos dados fornecidos pelo usuário, você deve consultar seu histórico, a menos que o usuário explicite que NÃO deseja isso.
+- Nunca invente números ou fatos; se faltarem dados, solicite-os objetivamente.
+- Seja direto, empático e responsável; 
+- Evite jargões.
+- Mantenha respostas curtas e utilizáveis.
+
+### FORMATO DE RESPOSTA
+- <sua resposta será 1 frase objetiva sobre a situação>
+- *Recomendação*: 
+<ação prática e imediata>
+- *Acompanhamento* (opcional): 
+<se não tiver informações suficientes para fornecer uma resposta curta, se tiver varias respostas possíveis ou se verificar que o pedido do usuário pode ou precisa ser armazenado seu histórico> 
+
+### HISTÓRICO DA CONVERSA
+{chat_history}
+    """
     )
-    response = normal_chat([HumanMessage(content=prompt_gemini)])
-    return response.content.strip()
-
-
-# Utilizar o RAG
-def rag_responder(id, pergunta: str) -> str:
-    docs = []
-    pasta = "app/ai/text/"
-    for nome in os.listdir(pasta):
-        if nome.endswith(".txt"):
-            caminho = os.path.join(pasta, nome)
-            loader = TextLoader(caminho, encoding="utf-8")
-            docs.extend(loader.load())
-    splitter = CharacterTextSplitter(chunk_size=10000, chunk_overlap=50)
-    docs_divididos = splitter.split_documents(docs)
-    return embedding_text(docs_divididos, pergunta, 1)
-
+    example_prompt = ChatPromptTemplate.from_messages([
+        HumanMessagePromptTemplate.from_template("{human}"),
+        AIMessagePromptTemplate.from_template("{ai}")
+    ])
+    shots = []
+    fewshots = FewShotChatMessagePromptTemplate(
+        examples=shots,
+        example_prompt=example_prompt
+    )
+    prompt = ChatPromptTemplate.from_messages([
+        system_prompt,
+        fewshots,
+        MessagesPlaceholder("chat_history"),
+        ("human", "{usuario}")
+    ])
+    base_chain = prompt | llm | StrOutputParser()
+    chain = RunnableWithMessageHistory(
+        base_chain,
+        get_session_history=get_session_history,
+        input_messages_key="usuario",
+        history_messages_key="chat_history"
+    )
+    if question.lower() in ('sair', 'end', 'fim', 'tchau', 'bye'):
+        return "Encerrando o chat."
+    try:
+        resposta = chain.invoke(
+            {"usuario": question},
+            config={"configurable": {"session_id": session_id}}
+        )
+        return resposta
+    except Exception as e:
+        return f"Não foi possível responder: {e}"
 
 # Verificar Resposta
 def juiz_resposta(pergunta: str, resposta: str) -> str:
     juiz = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         temperature=0.5,
         google_api_key=chave_api
     )
