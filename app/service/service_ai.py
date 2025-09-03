@@ -4,17 +4,16 @@ import json
 
 
 # Service
-def question_for_gemini(question: str, id_user: int) -> dict:
-    user_id = str(id_user)
+def question_for_gemini(question: str, id_user: int,id_session) -> dict:
 
     if verifica_pergunta(question) == "SIM":
         return {
             "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
         }
     
-    resposta_texto = gemini_resp(question)
+    answer = gemini_resp(id_session,question)
 
-    judgment: str = juiz_resposta(question, resposta_texto)
+    judgment: str = juiz_resposta(question, answer)
 
     juiz = json.loads(judgment)
     status = juiz["status"]
