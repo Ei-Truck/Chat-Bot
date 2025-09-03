@@ -34,15 +34,15 @@ def verifica_pergunta(pergunta: str) -> str:
 
 
 
-def get_session_history(session_id) -> MongoDBChatMessageHistory:
+def get_session_history(user_id, session_id) -> MongoDBChatMessageHistory:
     return MongoDBChatMessageHistory(
-        session_id=session_id,
+        session_id=f"{user_id}_{session_id}",
         connection_string=mongo_host,
         database_name="chatbot_db",
         collection_name="chat_histories"
     )
 
-def gemini_resp(session_id, question):
+def gemini_resp(user_id, session_id, question):
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
         temperature=0.7,
@@ -102,7 +102,7 @@ Você é o Assessor.AI — um assistente pessoal de compromissos e finanças. Vo
     base_chain = prompt | llm | StrOutputParser()
     chain = RunnableWithMessageHistory(
         base_chain,
-        get_session_history=get_session_history,
+        get_session_history=get_session_history(user_id,session_id),
         input_messages_key="usuario",
         history_messages_key="chat_history"
     )
