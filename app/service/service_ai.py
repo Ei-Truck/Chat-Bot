@@ -1,5 +1,5 @@
 from app.ai.ai_model import verifica_pergunta, juiz_resposta, gemini_resp
-from app.ai.ai_rag import embedding_files, embedding_mongo, search_embedding
+from app.ai.ai_rag import embedding_files, search_embedding
 from datetime import datetime
 import json
 
@@ -18,7 +18,7 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
     encontrado = search_embedding(question)
     score = encontrado[0]
     
-    if float(score) <= 0.5:    
+    if float(score) <= 0.8:    
         answer = gemini_resp(id_user,id_session,question)
     else:
         answer = encontrado[1]
