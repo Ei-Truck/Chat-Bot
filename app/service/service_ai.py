@@ -18,7 +18,7 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
     encontrado = search_embedding(question)
     score = encontrado[0]
     
-    if float(score) <= 0.8:    
+    if float(score[0]) <= 0.6:    
         answer = gemini_resp(id_user,id_session,question)
     else:
         answer = encontrado[1]
