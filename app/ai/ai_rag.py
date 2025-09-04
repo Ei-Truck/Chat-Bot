@@ -1,29 +1,31 @@
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from dotenv import load_dotenv
 import pymongo
 import os
 
+load_dotenv()
+
 model = SentenceTransformer("paraphrase-MiniLM-L3-v2")
 
-client = pymongo.MongoClient("mongodb://localhost:27017/")
+mongo_host = os.getenv("CONNSTRING")
+
+
+client = pymongo.MongoClient(mongo_host)
 db = client["chatbot_db"]
 collection = db["documents"]
 
-def embedding__files(folder_path=".\\app\\ai\\text"):
-
+def embedding_files(folder_path=".\\app\\ai\\text"):
     for filename in os.listdir(folder_path):
         filepath = os.path.join(folder_path, filename)
         if not os.path.isfile(filepath):
             continue
-
         with open(filepath, 'r', encoding='utf-8') as f:
             texts = f.read().strip()
-
         for text in texts.split("\n\n"):
             text = text.strip()
             embedding = model.encode(text)
-
-            result = collection.update_one(
+            collection.update_one(
                 {"filename": filename},  
                 {
                     "$set": {
@@ -33,24 +35,8 @@ def embedding__files(folder_path=".\\app\\ai\\text"):
                 },
                 upsert=True  
             )
-            if result.upserted_id:
-                print(f"Inserido {text} com _id {result.upserted_id}")
-            else:
-                print(f"Atualizado documento do arquivo {text}\n")
 
-def embedding__mongo():
-    for doc in collection.find():
-        if "text" not in doc:
-            continue
-        embedding = model.encode(doc["text"])
-        collection.update_one(
-            {"_id": doc["_id"]},
-            {"$set": {"embedding": embedding.tolist()}},
-            upsert=True
-        )
-        print(f"Atualizado {doc['_id']} com embedding.")
-        
-        
+
 def search_embedding(question, top_k=1):
     question_embedded = model.encode(question).tolist()
     result = collection.find(
