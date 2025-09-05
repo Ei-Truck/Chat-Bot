@@ -1,3 +1,4 @@
+# Core
 pip>=25.2
 setuptools>=70.0.0
 wheel>=0.44.0
@@ -15,12 +16,13 @@ langchain~=0.3.25
 langchain-core~=0.3.62
 langchain-community~=0.3.25
 langchain-text-splitters~=0.3.8
+langchain-mongodb~=0.3.25
 
-# .env
+# Environment variables
 python-dotenv~=1.1.0
 dotenv~=0.9.9
 
-# Utilidades
+# Utilities
 marshmallow~=3.26.1
 sentence-transformers>=2.6.1
 transformers==4.39.3
