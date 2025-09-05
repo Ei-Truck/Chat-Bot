@@ -1,69 +1,38 @@
-from app.ai.ai_model import verifica_pergunta, rag_responder, juiz_resposta, gemini_resp
-from app.ai.embedding import historico_gemini, verifica_embedding
-from app.ai.histChat import ChatHistory
+from app.ai.ai_model import verifica_pergunta, juiz_resposta, gemini_resp
+from app.ai.ai_rag import embedding_files, search_embedding
 from datetime import datetime
 import json
-
-# Instanciando histórico
-hist = ChatHistory()
 
 
 # Service
 def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
-
+    
+    # Embeddando o arquivo txt de FAQ
+    embedding_files()
+    
     if verifica_pergunta(question) == "SIM":
         return {
             "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
-        }
+        }    
+    encontrado = search_embedding(question)
+    score = encontrado[0]
+    
+    if float(score[0]) <= 0.6:    
+        answer = gemini_resp(id_user,id_session,question)
 
-    hist.armazenar_mensagem(id_user,id_session,question)
-
-    contexto = hist.search_history(id_user,id_session,question)
-    contexto_texto = ""
-    if contexto:
-        contexto_texto = "Contexto de conversas anteriores:\n"
-        for c in contexto:
-            if not c:
-                continue
-            if isinstance(c, dict):
-                c_dict = c
-            elif isinstance(c, str):
-                try:
-                    c_dict = json.loads(c)
-                except json.JSONDecodeError:
-                    c_dict = {"user": id_user, "mensagem": c}
-            else:
-                continue
-        contexto_texto += f"{c_dict['user']}: {c_dict['mensagem']}\n"
-        
-    prompt = f"{contexto_texto}\nUsuário: {question}"
-
-    resposta = rag_responder(id_user, question)
-    resposta_texto, resposta_score = resposta[0]
-
-    encontrado = verifica_embedding(question)
-
-    if encontrado is None:
-        if resposta_score < 0.5:
-            # Usa Gemini com suporte do histórico
-            resposta_texto = gemini_resp(prompt)
-        else:
-            resposta_texto = resposta_texto
-
-        judgment: str = juiz_resposta(prompt, resposta_texto)
-
-        juiz = json.loads(judgment)
-        status = juiz["status"]
-
-        if status == "Aprovado":
-            final_answer = juiz["answer"]
-        elif status == "Reprovado":
-            final_answer = juiz["judgmentAnswer"]
-        
-        historico_gemini(question,str(final_answer))
-        hist.armazenar_mensagem(id_user,id_session, str(final_answer))
     else:
-        final_answer = encontrado
+        answer = encontrado[1]
+
+    judgment: str = juiz_resposta(question, answer)
+
+    juiz = json.loads(judgment)
+    status = juiz["status"]
+
+    if status == "Aprovado":
+        final_answer = juiz["answer"]
+    elif status == "Reprovado":
+        final_answer = juiz["judgmentAnswer"]
+
 
     return {
         "timestamp": datetime.now().isoformat(),
