@@ -33,7 +33,6 @@ def verifica_pergunta(pergunta: str) -> str:
     return resposta_llm.content.strip()
 
 
-
 def get_session_history(user_id, session_id) -> MongoDBChatMessageHistory:
     return MongoDBChatMessageHistory(
         session_id=f"{user_id}_{session_id}",

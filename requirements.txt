@@ -1,3 +1,7 @@
+pip>=25.2
+setuptools>=70.0.0
+wheel>=0.44.0
+
 # Flask
 Flask~=3.1.1
 
@@ -18,11 +22,8 @@ dotenv~=0.9.9
 
 # Utilidades
 marshmallow~=3.26.1
-faiss-cpu~=1.8.0
 sentence-transformers>=2.6.1
-transformers==4.41.2
-huggingface_hub>=0.23.0
+transformers==4.39.3
+huggingface_hub==0.20.3
 pymongo~=4.4.0
-pytest==7.4.0
-black==23.1.0
 prompt_toolkit==3.0.38
