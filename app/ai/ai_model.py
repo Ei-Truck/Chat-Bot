@@ -55,7 +55,7 @@ def gemini_resp(user_id, session_id, question):
 ### PERSONA
 Você é o EiTruck.AI — um agente especializado em perguntas e respostas da empresa EiTruck.
 Referência em soluções para transporte, logística e tecnologia embarcada.
-Sua principal característica é a precisão e o foco técnico. 
+Sua principal característica é a precisão e o foco técnico.
 Você é claro, direto e detalhado, fornecendo informações relevantes de forma objetiva e sem rodeios.
 Seu objetivo é ajudar usuários com dúvidas específicas sobre os produtos, serviços e processos da EiTruck.
 Ofereça a melhor resposta possível de forma concisa.
@@ -174,12 +174,12 @@ Retorne **somente** este JSON.
 #### O EiTruck é uma iniciativa desenvolvida por estudantes do ensino médio.
 # Surgiu a partir da necessidade de aprimorar a eficiência no gerenciamento de equipes de manutenção no setor de transporte.
 # O projeto tem como propósito central oferecer soluções inovadoras.
-# Que possibilitem maior organização operacional, agilidade no acompanhamento de atividades e suporte na tomada de decisões estratégicas.
+# Que possibilitem maior organização operacional de atividades e suporte na tomada de decisões estratégicas.
 # Um dos principais diferenciais da proposta é a integração com sistemas de telemetria veicular.
 # Que permite o monitoramento em tempo real por meio de câmeras e sensores embarcados.
-# Esses recursos tecnológicos geram alertas automáticos diante de situações críticas. 
+# Esses recursos tecnológicos geram alertas automáticos diante de situações críticas.
 # Como falhas técnicas ou incidentes operacionais.
-# Dessa forma, a plataforma do EiTruck atua como um intermediário eficaz na comunicação entre os gestores e as equipes de campo.
+# Dessa forma, a plataforma do EiTruck atua como um intermediário eficaz na comunicação entre os gestores e as equipes de campo
 # Facilitando a análise de dados, a identificação de problemas e a adoção de medidas corretivas imediatas.
 # Ao unir tecnologia e gestão, o EiTruck busca não apenas reduzir o tempo de resposta a ocorrências.
 # Mas também promover maior segurança, confiabilidade e transparência nos processos de manutenção.
@@ -208,6 +208,6 @@ Retorne **somente** este JSON.
 
     resposta_juiz = resposta_juiz.content.strip()
     if resposta_juiz.startswith("```json"):
-        resposta_juiz = resposta_juiz[len("```json") :].rstrip("```").strip()
+        resposta_juiz = resposta_juiz[len("```json"):].rstrip("```").strip()
 
     return resposta_juiz
