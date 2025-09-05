@@ -22,17 +22,14 @@ mongo_host = os.getenv("CONNSTRING")
 
 # Verificar pergunta
 def verifica_pergunta(pergunta: str) -> str:
-    llm = ChatGoogleGenerativeAI(
-        google_api_key=chave_api,
-        model="gemini-1.5-flash",
-        temperature=0)
+    llm = ChatGoogleGenerativeAI(google_api_key=chave_api, model="gemini-1.5-flash", temperature=0)
     prompt_avaliacao = (
         "Você é um assistente que verifica se um texto contém "
         "linguagem ofensiva, discurso de ódio, calúnia ou difamação. "
-        "Responda 'SIM' se contiver e 'NÃO' caso contrário. Seja estrito na sua avaliação.")
+        "Responda 'SIM' se contiver e 'NÃO' caso contrário. Seja estrito na sua avaliação."
+    )
 
-    resposta_llm = llm.invoke(
-        [HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)])
+    resposta_llm = llm.invoke([HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)])
     return resposta_llm.content.strip()
 
 
@@ -46,11 +43,7 @@ def get_session_history(user_id, session_id) -> MongoDBChatMessageHistory:
 
 
 def gemini_resp(user_id, session_id, question):
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        temperature=0.7,
-        top_p=0.95,
-        google_api_key=chave_api)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.7, top_p=0.95, google_api_key=chave_api)
 
     system_prompt = (
         "system",
@@ -93,8 +86,7 @@ Seu objetivo é ajudar usuários com dúvidas específicas sobre os produtos, se
         ]
     )
     shots = []
-    fewshots = FewShotChatMessagePromptTemplate(
-        examples=shots, example_prompt=example_prompt)
+    fewshots = FewShotChatMessagePromptTemplate(examples=shots, example_prompt=example_prompt)
     prompt = ChatPromptTemplate.from_messages(
         [
             system_prompt,
@@ -113,8 +105,7 @@ Seu objetivo é ajudar usuários com dúvidas específicas sobre os produtos, se
     if question.lower() in ("sair", "end", "fim", "tchau", "bye"):
         return "Encerrando o chat."
     try:
-        resposta = chain.invoke({"usuario": question}, config={
-                                "configurable": {"session_id": session_id}})
+        resposta = chain.invoke({"usuario": question}, config={"configurable": {"session_id": session_id}})
         return resposta
     except Exception as e:
         return f"Não foi possível responder: {e}"
@@ -122,10 +113,7 @@ Seu objetivo é ajudar usuários com dúvidas específicas sobre os produtos, se
 
 # Verificar Resposta
 def juiz_resposta(pergunta: str, resposta: str) -> str:
-    juiz = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        temperature=0.5,
-        google_api_key=chave_api)
+    juiz = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.5, google_api_key=chave_api)
 
     prompt_juiz = """
 Você é um avaliador imparcial. Sua única tarefa é revisar a resposta de um tutor de IA.
@@ -197,11 +185,10 @@ Retorne **somente** este JSON.
 
         """
 
-    resposta_juiz = juiz([HumanMessage(
-        content=prompt_juiz + "\n\nPergunta:" + pergunta + "\nResposta:" + resposta)])
+    resposta_juiz = juiz([HumanMessage(content=prompt_juiz + "\n\nPergunta:" + pergunta + "\nResposta:" + resposta)])
 
     resposta_juiz = resposta_juiz.content.strip()
     if resposta_juiz.startswith("```json"):
-        resposta_juiz = resposta_juiz[len("```json"):].rstrip("```").strip()
+        resposta_juiz = resposta_juiz[len("```json") :].rstrip("```").strip()
 
     return resposta_juiz
