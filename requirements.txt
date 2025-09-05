@@ -27,5 +27,5 @@ marshmallow~=3.26.1
 sentence-transformers>=2.6.1
 transformers==4.39.3
 huggingface_hub==0.20.3
-pymongo~=4.4.0
+pymongo~=4.6.1
 prompt_toolkit==3.0.38
