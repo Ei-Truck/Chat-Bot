@@ -23,17 +23,16 @@ mongo_host = os.getenv("CONNSTRING")
 # Verificar pergunta
 def verifica_pergunta(pergunta: str) -> str:
     llm = ChatGoogleGenerativeAI(
-        google_api_key=chave_api, model="gemini-1.5-flash", temperature=0
-    )
+        google_api_key=chave_api,
+        model="gemini-1.5-flash",
+        temperature=0)
     prompt_avaliacao = (
         "Você é um assistente que verifica se um texto contém "
         "linguagem ofensiva, discurso de ódio, calúnia ou difamação. "
-        "Responda 'SIM' se contiver e 'NÃO' caso contrário. Seja estrito na sua avaliação."
-    )
+        "Responda 'SIM' se contiver e 'NÃO' caso contrário. Seja estrito na sua avaliação.")
 
     resposta_llm = llm.invoke(
-        [HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)]
-    )
+        [HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)])
     return resposta_llm.content.strip()
 
 
@@ -48,15 +47,17 @@ def get_session_history(user_id, session_id) -> MongoDBChatMessageHistory:
 
 def gemini_resp(user_id, session_id, question):
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash", temperature=0.7, top_p=0.95, google_api_key=chave_api
-    )
+        model="gemini-2.5-flash",
+        temperature=0.7,
+        top_p=0.95,
+        google_api_key=chave_api)
 
     system_prompt = (
         "system",
         """
 ### PERSONA
-Você é o EiTruck.AI — um agente especializado em perguntas e respostas da empresa EiTruck, referência em soluções para transporte, logística e tecnologia embarcada. 
-Sua principal característica é a precisão e o foco técnico. Você é claro, direto e detalhado, fornecendo informações relevantes de forma objetiva e sem rodeios. 
+Você é o EiTruck.AI — um agente especializado em perguntas e respostas da empresa EiTruck, referência em soluções para transporte, logística e tecnologia embarcada.
+Sua principal característica é a precisão e o foco técnico. Você é claro, direto e detalhado, fornecendo informações relevantes de forma objetiva e sem rodeios.
 Seu objetivo é ajudar usuários com dúvidas específicas sobre os produtos, serviços e processos da EiTruck, oferecendo a melhor resposta possível de forma concisa.
 
 ### TAREFAS
@@ -93,8 +94,7 @@ Seu objetivo é ajudar usuários com dúvidas específicas sobre os produtos, se
     )
     shots = []
     fewshots = FewShotChatMessagePromptTemplate(
-        examples=shots, example_prompt=example_prompt
-    )
+        examples=shots, example_prompt=example_prompt)
     prompt = ChatPromptTemplate.from_messages(
         [
             system_prompt,
@@ -113,9 +113,8 @@ Seu objetivo é ajudar usuários com dúvidas específicas sobre os produtos, se
     if question.lower() in ("sair", "end", "fim", "tchau", "bye"):
         return "Encerrando o chat."
     try:
-        resposta = chain.invoke(
-            {"usuario": question}, config={"configurable": {"session_id": session_id}}
-        )
+        resposta = chain.invoke({"usuario": question}, config={
+                                "configurable": {"session_id": session_id}})
         return resposta
     except Exception as e:
         return f"Não foi possível responder: {e}"
@@ -124,8 +123,9 @@ Seu objetivo é ajudar usuários com dúvidas específicas sobre os produtos, se
 # Verificar Resposta
 def juiz_resposta(pergunta: str, resposta: str) -> str:
     juiz = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash", temperature=0.5, google_api_key=chave_api
-    )
+        model="gemini-2.5-flash",
+        temperature=0.5,
+        google_api_key=chave_api)
 
     prompt_juiz = """
 Você é um avaliador imparcial. Sua única tarefa é revisar a resposta de um tutor de IA.
@@ -166,19 +166,19 @@ Você **deve** retornar **exclusivamente** um objeto JSON válido, sem texto ext
     "judgmentAnswer": "<versão melhorada obrigatóriamente>"
 }
 
-Não adicione comentários, explicações, markdown ou qualquer outro conteúdo fora do JSON.  
+Não adicione comentários, explicações, markdown ou qualquer outro conteúdo fora do JSON.
 Retorne **somente** este JSON.
 
 # VOCÊ NÃO DEVE ALTERAR NADA NA RESPOSTA
 # CASO A RESPOSTA ESTEJA INCLUSA NO CONTEXTO EITRUCK APENAS O APROVE
 ## CONTEXTO EI TRUCK:
-### O EiTruck é uma iniciativa desenvolvida por estudantes do ensino médio que surgiu a partir da necessidade de aprimorar a eficiência no gerenciamento de equipes de manutenção no setor de transporte. 
-# O projeto tem como propósito central oferecer soluções inovadoras que possibilitem maior organização operacional, agilidade no acompanhamento de atividades e suporte na tomada de decisões estratégicas. 
-# Um dos principais diferenciais da proposta é a integração com sistemas de telemetria veicular, que permitem o monitoramento em tempo real por meio de câmeras e sensores embarcados. 
-# Esses recursos tecnológicos geram alertas automáticos diante de situações críticas, como falhas técnicas ou incidentes operacionais. 
-# Dessa forma, a plataforma do EiTruck atua como um intermediário eficaz na comunicação entre os gestores e as equipes de campo, facilitando a análise de dados, a identificação de problemas e a adoção de medidas corretivas imediatas. 
-# Ao unir tecnologia e gestão, o EiTruck busca não apenas reduzir o tempo de resposta a ocorrências, mas também promover maior segurança, confiabilidade e transparência nos processos de manutenção. 
-# Trata-se, portanto, de um projeto que alia inovação tecnológica, visão empreendedora e aplicação prática de conhecimentos adquiridos no ambiente escolar, refletindo o potencial transformador da educação voltada para soluções reais do mercado.  
+### O EiTruck é uma iniciativa desenvolvida por estudantes do ensino médio que surgiu a partir da necessidade de aprimorar a eficiência no gerenciamento de equipes de manutenção no setor de transporte.
+# O projeto tem como propósito central oferecer soluções inovadoras que possibilitem maior organização operacional, agilidade no acompanhamento de atividades e suporte na tomada de decisões estratégicas.
+# Um dos principais diferenciais da proposta é a integração com sistemas de telemetria veicular, que permitem o monitoramento em tempo real por meio de câmeras e sensores embarcados.
+# Esses recursos tecnológicos geram alertas automáticos diante de situações críticas, como falhas técnicas ou incidentes operacionais.
+# Dessa forma, a plataforma do EiTruck atua como um intermediário eficaz na comunicação entre os gestores e as equipes de campo, facilitando a análise de dados, a identificação de problemas e a adoção de medidas corretivas imediatas.
+# Ao unir tecnologia e gestão, o EiTruck busca não apenas reduzir o tempo de resposta a ocorrências, mas também promover maior segurança, confiabilidade e transparência nos processos de manutenção.
+# Trata-se, portanto, de um projeto que alia inovação tecnológica, visão empreendedora e aplicação prática de conhecimentos adquiridos no ambiente escolar, refletindo o potencial transformador da educação voltada para soluções reais do mercado.
 
 ### Os integrantes do EiTruck são:
 - Ana Clara Costa
@@ -197,20 +197,11 @@ Retorne **somente** este JSON.
 
         """
 
-    resposta_juiz = juiz(
-        [
-            HumanMessage(
-                content=prompt_juiz
-                + "\n\nPergunta:"
-                + pergunta
-                + "\nResposta:"
-                + resposta
-            )
-        ]
-    )
+    resposta_juiz = juiz([HumanMessage(
+        content=prompt_juiz + "\n\nPergunta:" + pergunta + "\nResposta:" + resposta)])
 
     resposta_juiz = resposta_juiz.content.strip()
     if resposta_juiz.startswith("```json"):
-        resposta_juiz = resposta_juiz[len("```json") :].rstrip("```").strip()
+        resposta_juiz = resposta_juiz[len("```json"):].rstrip("```").strip()
 
     return resposta_juiz
