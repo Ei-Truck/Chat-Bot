@@ -16,7 +16,7 @@ db = client["chatbot_db"]
 collection = db["documents"]
 
 
-def embedding_files(folder_path=".\\app\\ai\\text"):
+def embedding_files(folder_path="./app/ai/text"):
     for filename in os.listdir(folder_path):
         filepath = os.path.join(folder_path, filename)
         if not os.path.isfile(filepath):
