@@ -94,11 +94,38 @@ def juiz_resposta(pergunta: str, resposta: str) -> str:
     )
 
     prompt_juiz = os.path.join(os.path.dirname(__file__), "prompt_juiz.txt")
-
-    resposta_juiz = juiz(
-        [HumanMessage(content=prompt_juiz + "\n\nPergunta:" + pergunta + "\nResposta:" + resposta)]
+    system_prompt = (
+        "system",
+        prompt_juiz
     )
-
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            HumanMessagePromptTemplate.from_template("{human}"),
+            AIMessagePromptTemplate.from_template("{ai}"),
+        ]
+    )
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            system_prompt,
+            MessagesPlaceholder("chat_history"),
+            ("human", "{usuario}"),
+        ]
+    )
+    base_chain = prompt | juiz | StrOutputParser()
+    chain = RunnableWithMessageHistory(
+        base_chain,
+        input_messages_key="usuario",
+        history_messages_key="chat_history",
+    )
+    try:
+        resposta_juiz = chain.invoke(
+            {
+                "usuario": f"Pergunta: {pergunta}\nResposta do Chatbot: {resposta}\nAvalie a resposta do chatbot com base na pergunta e responda em formato JSON conforme o modelo fornecido no prompt."
+            }
+        )
+    except Exception as e:
+        return f"Não foi possível avaliar a resposta: {e}"
+    
     resposta_juiz = resposta_juiz.content.strip()
     if resposta_juiz.startswith("```json"):
         resposta_juiz = resposta_juiz[len("```json"):].rstrip("```").strip()
