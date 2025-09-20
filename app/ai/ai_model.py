@@ -48,12 +48,10 @@ def gemini_resp(user_id, session_id, question):
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash", temperature=0.7, top_p=0.95, google_api_key=chave_api
     )
-
+    prompt_gemini = os.path.join(os.path.dirname(__file__), "prompt_gemini.txt")
     system_prompt = (
         "system",
-        """
-
-""",
+        prompt_gemini
     )
     example_prompt = ChatPromptTemplate.from_messages(
         [
@@ -95,9 +93,7 @@ def juiz_resposta(pergunta: str, resposta: str) -> str:
         model="gemini-2.5-flash", temperature=0.5, google_api_key=chave_api
     )
 
-    prompt_juiz = """
-
-        """
+    prompt_juiz = os.path.join(os.path.dirname(__file__), "prompt_juiz.txt")
 
     resposta_juiz = juiz(
         [HumanMessage(content=prompt_juiz + "\n\nPergunta:" + pergunta + "\nResposta:" + resposta)]
