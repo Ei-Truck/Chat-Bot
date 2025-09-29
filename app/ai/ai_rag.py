@@ -33,7 +33,7 @@ def embedding_files(folder_path="./app/ai/text"):
             )
 
 
-def search_embedding(question, top_k=1):
+def search_embedding(question, top_k=1) -> list:
     question_embedded = model.encode(question).tolist()
     result = collection.find({"embedding": {"$exists": True}})
     results = []

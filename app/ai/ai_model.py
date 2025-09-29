@@ -44,7 +44,7 @@ def get_session_history(user_id, session_id) -> MongoDBChatMessageHistory:
     )
 
 
-def gemini_resp(user_id, session_id, question):
+def gemini_resp(user_id, session_id, question) -> str:
     session=f"{user_id}_{session_id}"
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash", temperature=0.7, top_p=0.95, google_api_key=chave_api
