@@ -188,12 +188,10 @@ def especialista_auto(user_id, session_id):
     )
     return chain_especialista
 
-# Responder Pergunta
+## Especialista em perguntas gerais
 def gemini_resp(user_id, session_id, question) -> str:
     session=f"{user_id}_{session_id}"
-    
-    
-    with open("./app/ai/text/prompt_juiz.txt", "r", encoding="utf-8") as f:
+    with open("./app/ai/text/prompt_gemini.txt", "r", encoding="utf-8") as f:
         prompt_gemini_text = f.read()  
 
     system_prompt = (
@@ -282,4 +280,51 @@ def juiz_resposta(question: str, answer: str,user_id: int,session_id: int) -> st
         return resposta_juiz
     
     except Exception as e:
-        return f"Não foi possível responder: {e}"
+        return f"Não foi possível responder: {e}"    
+
+## Agente Orquestrador
+def orquestrador_resp(user_id: int, session_id: int):
+    session=f"{user_id}_{session_id}"
+    with open("./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8") as f:
+        system_orquestrador_prompt = f.read()  
+    system_orquestrador_prompt = (
+        "system",
+        system_orquestrador_prompt
+    )
+    shots_orquestrador = [
+        # 1) Financeiro — consultar
+        {
+            "human": """ESPECIALISTA_JSON:\n{{"dominio":"automobilistica","intencao":"","resposta":"Você gastou R$ 842,75 com 'comida' no mês passado.","recomendacao":"Quer detalhar por estabelecimento?","janela_tempo":{{"de":"2025-08-01","ate":"2025-08-31","rotulo":"mês passado (ago/2025)"}}}}""",
+            "ai": "Você gastou R$ 842,75 com 'comida' no mês passado.\n- *Recomendação*:\nQuer detalhar por estabelecimento?"
+        },
+
+        # 2) Financeiro — falta dado → esclarecer
+        {
+            "human": """ESPECIALISTA_JSON:\n{{"dominio":"financeiro","intencao":"resumo","resposta":"Preciso do período para seguir.","recomendacao":"","esclarecer":"Qual período considerar (ex.: hoje, esta semana, mês passado)?"}}""",
+            "ai": """Preciso do período para seguir.\n- *Acompanhamento* (opcional):\nQual período considerar (ex.: hoje, esta semana, mês passado)?"""
+        },
+
+        # 3) Agenda — criar
+        {
+            "human": """ESPECIALISTA_JSON:\n{{"dominio":"agenda","intencao":"criar","resposta":"Posso criar 'Reunião com João' amanhã 09:00–10:00.","recomendacao":"Confirmo o envio do convite?","janela_tempo":{{"de":"2025-09-29T09:00","ate":"2025-09-29T10:00","rotulo":"amanhã 09:00–10:00"}},"evento":{{"titulo":"Reunião com João","data":"2025-09-29","inicio":"09:00","fim":"10:00","local":"online"}}}}""",
+            "ai": """Posso criar 'Reunião com João' amanhã 09:00–10:00.\n- *Recomendação*:\nConfirmo o envio do convite?"""
+        },
+    ]
+
+    fewshots_orquestrador = FewShotChatMessagePromptTemplate(
+        examples=shots_orquestrador,
+        example_prompt=system_orquestrador_prompt,
+    )
+    prompt_orquestrador = ChatPromptTemplate.from_messages([
+        system_orquestrador_prompt,
+        fewshots_orquestrador,
+        MessagesPlaceholder("chat_history"),
+        ("human", "{input}"),
+    ])
+    prompt_roteador = prompt_roteador.partial(today=today.isoformat(),time=hour.isoformat())
+    chain_roteador = RunnableWithMessageHistory(
+        get_session_history=lambda _: get_session_history(user_id, session_id),
+        input_messages_key="input",
+        history_messages_key="chat_history"
+    )
+    return chain_roteador
