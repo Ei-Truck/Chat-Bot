@@ -64,7 +64,6 @@ def get_session_history(user_id, session_id) -> MongoDBChatMessageHistory:
 
 # Roteador para localizar agente especialista
 def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
-    session = f"{user_id}_{session_id}"
     with open("./app/ai/text/prompt_roteador.txt", "r", encoding="utf-8") as f:
         prompt_roteador_text = f.read()
 
@@ -127,9 +126,8 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
 
 
 # Agentes especialistas
-## Especialista em automobilistica
+# Especialista em automobilistica
 def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
-    session = f"{user_id}_{session_id}"
     with open(
         "./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8"
     ) as f:
@@ -190,9 +188,8 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
     return chain_especialista
 
 
-## Especialista em perguntas gerais
+# Especialista em perguntas gerais
 def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
-    session = f"{user_id}_{session_id}"
     with open("./app/ai/text/prompt_gemini.txt", "r", encoding="utf-8") as f:
         prompt_gemini_text = f.read()
 
@@ -223,9 +220,9 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
     return chain
 
 
-## Verificar Resposta
+# Verificar Resposta
 def juiz_resposta(question: str, answer: str, user_id: int, session_id: int) -> str:
-    session = f"{user_id}_{session_id}"
+    session=f"{user_id}_{session_id}"
     user = "Pergunta: " + question + "\nResposta: " + answer
     juiz = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash", temperature=0.5, google_api_key=chave_api
@@ -269,9 +266,8 @@ def juiz_resposta(question: str, answer: str, user_id: int, session_id: int) -> 
         return f"Não foi possível responder: {e}"
 
 
-## Agente Orquestrador
+# Agente Orquestrador
 def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHistory:
-    session = f"{user_id}_{session_id}"
     with open(
         "./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8"
     ) as f:
