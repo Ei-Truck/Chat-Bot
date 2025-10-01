@@ -11,9 +11,7 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
     embedding_files()
 
     if verifica_pergunta(question) == "SIM":
-        return {
-            "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
-        }
+        return {"error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."}
     encontrado = search_embedding(question)
     score = encontrado[0]
 

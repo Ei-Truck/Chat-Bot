@@ -27,29 +27,21 @@ hour = datetime.now(TZ).time()
 chave_api = os.getenv("GEMINI_API_KEY")
 mongo_host = os.getenv("CONNSTRING")
 
-llm_fast = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash", temperature=0, google_api_key=chave_api
-)
+llm_fast = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_api_key=chave_api)
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash", temperature=0.7, top_p=0.95, google_api_key=chave_api
-)
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.7, top_p=0.95, google_api_key=chave_api)
 
 
 # Verificar pergunta
 def verifica_pergunta(pergunta: str) -> str:
-    llm = ChatGoogleGenerativeAI(
-        google_api_key=chave_api, model="gemini-1.5-flash", temperature=0
-    )
+    llm = ChatGoogleGenerativeAI(google_api_key=chave_api, model="gemini-1.5-flash", temperature=0)
     prompt_avaliacao = (
         "Você é um assistente que verifica se um texto contém "
         "linguagem ofensiva, discurso de ódio, calúnia ou difamação. "
         "Responda 'SIM' se contiver e 'NÃO' caso contrário. Seja estrito na sua avaliação."
     )
 
-    resposta_llm = llm.invoke(
-        [HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)]
-    )
+    resposta_llm = llm.invoke([HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)])
     return resposta_llm.content.strip()
 
 
@@ -111,9 +103,7 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
             MessagesPlaceholder("agent_scratchpad"),  # acesso ao tools
         ]
     )
-    prompt_roteador = prompt_roteador.partial(
-        today=today.isoformat(), time=hour.isoformat()
-    )
+    prompt_roteador = prompt_roteador.partial(today=today.isoformat(), time=hour.isoformat())
     agent_roteador = create_tool_calling_agent(llm_fast, prompt_roteador)
     agent_executor_roteador = AgentExecutor(agent=agent_roteador, verbose=False)
     chain_roteador = RunnableWithMessageHistory(
@@ -128,9 +118,7 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
 # Agentes especialistas
 # Especialista em automobilistica
 def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
-    with open(
-        "./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8"
-    ) as f:
+    with open("./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8") as f:
         prompt_especialista_text = f.read()
     system_prompt_especialista = ("system", prompt_especialista_text)
     prompt_especialista = ChatPromptTemplate.from_messages(
@@ -172,9 +160,7 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
         ]
     )
 
-    prompt_financeiro = prompt_financeiro.partial(
-        today=today.isoformat(), time=hour.isoformat()
-    )
+    prompt_financeiro = prompt_financeiro.partial(today=today.isoformat(), time=hour.isoformat())
 
     agent_especialista = create_tool_calling_agent(llm, prompt_financeiro)
     agent_executor_especialista = AgentExecutor(agent=agent_especialista, verbose=False)
@@ -222,11 +208,9 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
 
 # Verificar Resposta
 def juiz_resposta(question: str, answer: str, user_id: int, session_id: int) -> str:
-    session=f"{user_id}_{session_id}"
+    session = f"{user_id}_{session_id}"
     user = "Pergunta: " + question + "\nResposta: " + answer
-    juiz = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash", temperature=0.5, google_api_key=chave_api
-    )
+    juiz = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.5, google_api_key=chave_api)
     with open("./app/ai/text/prompt_juiz.txt", "r", encoding="utf-8") as f:
         prompt_juiz_text = f.read()
     system_prompt = ("system", prompt_juiz_text)
@@ -254,9 +238,7 @@ def juiz_resposta(question: str, answer: str, user_id: int, session_id: int) -> 
         history_messages_key="chat_history",
     )
     try:
-        resposta_juiz = chain.invoke(
-            {"input": user}, config={"configurable": {"session_id": session}}
-        )
+        resposta_juiz = chain.invoke({"input": user}, config={"configurable": {"session_id": session}})
         resposta_juiz = resposta_juiz.strip()
         if resposta_juiz.startswith("```json"):
             resposta_juiz = resposta_juiz[len("```json") :].rstrip("```").strip()
@@ -268,24 +250,30 @@ def juiz_resposta(question: str, answer: str, user_id: int, session_id: int) -> 
 
 # Agente Orquestrador
 def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHistory:
-    with open(
-        "./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8"
-    ) as f:
+    with open("./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8") as f:
         system_orquestrador_prompt = f.read()
     system_orquestrador_prompt = ("system", system_orquestrador_prompt)
     shots_orquestrador = [
         # 1)  — consultar
         {
             "human": """ESPECIALISTA_JSON:
-            {{"dominio":"automobilistica","resposta":"Você gastou R$ 842,75 com 'comida' no mês passado.",
-            "recomendacao":"Quer detalhar por estabelecimento?","janela_tempo":{{"de":"2025-08-01","ate":"2025-08-31",
-            "rotulo":"mês passado (ago/2025)"}}}}""",
-            "ai": "Você gastou R$ 842,75 com 'comida' no mês passado.\n- *Recomendação*:\nQuer detalhar por estabelecimento?",
+            {{
+                "dominio":"automobilistica",
+                "resposta":"Você gastou R$ 842,75 com 'comida' no mês passado.",
+                "recomendacao":"Quer detalhar por estabelecimento?",
+                "janela_tempo":{{"de":"2025-08-01","ate":"2025-08-31",
+                "rotulo":"mês passado (ago/2025)"}}
+            }}""",
+            "ai": """Você gastou R$ 842,75 com 'comida' no mês passado.
+             *Recomendação*:\nQuer detalhar por estabelecimento?""",
         },
         # 2) Financeiro — falta dado → esclarecer
         {
-            "human": """ESPECIALISTA_JSON:\n{{"dominio":"financeiro","resposta":"Preciso do período para seguir.",
-            "recomendacao":"","esclarecer":"Qual período considerar (ex.: hoje, esta semana, mês passado)?"}}""",
+            "human": """ESPECIALISTA_JSON:\n{{
+                "dominio":"financeiro",
+                "resposta":"Preciso do período para seguir.",
+                "recomendacao":"",
+                "esclarecer":"Qual período considerar (ex.: hoje, esta semana, mês passado)?"}}""",
             "ai": """Preciso do período para seguir.\n- *Acompanhamento* (opcional):
             Qual período considerar (ex.: hoje, esta semana, mês passado)?""",
         },
@@ -312,9 +300,7 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
             ("human", "{input}"),
         ]
     )
-    prompt_orquestrador = prompt_orquestrador.partial(
-        today=today.isoformat(), time=hour.isoformat()
-    )
+    prompt_orquestrador = prompt_orquestrador.partial(today=today.isoformat(), time=hour.isoformat())
     chain_orquestrador = RunnableWithMessageHistory(
         get_session_history=lambda _: get_session_history(user_id, session_id),
         input_messages_key="input",
