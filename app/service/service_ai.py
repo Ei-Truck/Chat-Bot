@@ -23,7 +23,7 @@ def question_for_gemini(question: str, id_user: int, id_session: int) -> dict:
     else:
         answer = encontrado[1]
 
-    judgment: str = juiz_resposta(question, answer,id_user,id_session)
+    judgment: str = juiz_resposta(question, answer, id_user, id_session)
     juiz = json.loads(judgment)
     status = juiz["status"]
 

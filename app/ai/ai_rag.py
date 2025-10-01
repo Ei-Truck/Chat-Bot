@@ -39,8 +39,7 @@ def search_embedding(question, top_k=1) -> list:
     results = []
     for doc in result:
         doc_embedding = doc["embedding"]
-        distance = cosine_similarity(
-            [question_embedded], [doc_embedding])[0][0]
+        distance = cosine_similarity([question_embedded], [doc_embedding])[0][0]
         results.append((distance, doc["text"]))
     results = sorted(results, key=lambda x: x[0], reverse=True)[:top_k]
     return results
