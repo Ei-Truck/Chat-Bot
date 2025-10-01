@@ -128,8 +128,8 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
 
 
 # Agentes especialistas
-## Especialista em automobilistica de caminhões
-def especialista_auto(user_id, session_id):
+## Especialista em automobilistica
+def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
     session=f"{user_id}_{session_id}"
     with open("./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8") as f:
         prompt_especialista_text = f.read()  
@@ -189,7 +189,7 @@ def especialista_auto(user_id, session_id):
     return chain_especialista
 
 ## Especialista em perguntas gerais
-def gemini_resp(user_id, session_id, question) -> str:
+def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
     session=f"{user_id}_{session_id}"
     with open("./app/ai/text/prompt_gemini.txt", "r", encoding="utf-8") as f:
         prompt_gemini_text = f.read()  
@@ -221,20 +221,11 @@ def gemini_resp(user_id, session_id, question) -> str:
         input_messages_key="input",
         history_messages_key="chat_history",
     )
-    if question.lower() in ("sair", "end", "fim", "tchau", "bye"):
-        return "Encerrando o chat."
-    try:
-        resposta = chain.invoke(
-            {"input": question}, config={"configurable": {"session_id": session}}
-        )
-        return resposta
-    except Exception as e:
-        return f"Não foi possível responder: {e}"
+    return chain
 
 
 
-
-# Verificar Resposta
+## Verificar Resposta
 def juiz_resposta(question: str, answer: str,user_id: int,session_id: int) -> str:
     session=f"{user_id}_{session_id}"
     user = "Pergunta: "+question+"\nResposta: "+answer
@@ -283,7 +274,7 @@ def juiz_resposta(question: str, answer: str,user_id: int,session_id: int) -> st
         return f"Não foi possível responder: {e}"    
 
 ## Agente Orquestrador
-def orquestrador_resp(user_id: int, session_id: int):
+def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHistory:
     session=f"{user_id}_{session_id}"
     with open("./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8") as f:
         system_orquestrador_prompt = f.read()  
@@ -292,21 +283,30 @@ def orquestrador_resp(user_id: int, session_id: int):
         system_orquestrador_prompt
     )
     shots_orquestrador = [
-        # 1) Financeiro — consultar
+        # 1)  — consultar
         {
-            "human": """ESPECIALISTA_JSON:\n{{"dominio":"automobilistica","intencao":"","resposta":"Você gastou R$ 842,75 com 'comida' no mês passado.","recomendacao":"Quer detalhar por estabelecimento?","janela_tempo":{{"de":"2025-08-01","ate":"2025-08-31","rotulo":"mês passado (ago/2025)"}}}}""",
+            "human": """ESPECIALISTA_JSON:
+            {{"dominio":"automobilistica","intencao":"","resposta":"Você gastou R$ 842,75 com 'comida' no mês passado.",
+            "recomendacao":"Quer detalhar por estabelecimento?","janela_tempo":{{"de":"2025-08-01","ate":"2025-08-31",
+            "rotulo":"mês passado (ago/2025)"}}}}""",
             "ai": "Você gastou R$ 842,75 com 'comida' no mês passado.\n- *Recomendação*:\nQuer detalhar por estabelecimento?"
         },
 
         # 2) Financeiro — falta dado → esclarecer
         {
-            "human": """ESPECIALISTA_JSON:\n{{"dominio":"financeiro","intencao":"resumo","resposta":"Preciso do período para seguir.","recomendacao":"","esclarecer":"Qual período considerar (ex.: hoje, esta semana, mês passado)?"}}""",
-            "ai": """Preciso do período para seguir.\n- *Acompanhamento* (opcional):\nQual período considerar (ex.: hoje, esta semana, mês passado)?"""
+            "human": """ESPECIALISTA_JSON:\n{{"dominio":"financeiro","intencao":"resumo","resposta":"Preciso do período para seguir.",
+            "recomendacao":"","esclarecer":"Qual período considerar (ex.: hoje, esta semana, mês passado)?"}}""",
+            "ai": """Preciso do período para seguir.\n- *Acompanhamento* (opcional):
+            Qual período considerar (ex.: hoje, esta semana, mês passado)?"""
         },
 
         # 3) Agenda — criar
         {
-            "human": """ESPECIALISTA_JSON:\n{{"dominio":"agenda","intencao":"criar","resposta":"Posso criar 'Reunião com João' amanhã 09:00–10:00.","recomendacao":"Confirmo o envio do convite?","janela_tempo":{{"de":"2025-09-29T09:00","ate":"2025-09-29T10:00","rotulo":"amanhã 09:00–10:00"}},"evento":{{"titulo":"Reunião com João","data":"2025-09-29","inicio":"09:00","fim":"10:00","local":"online"}}}}""",
+            "human": """ESPECIALISTA_JSON:
+            {{"dominio":"agenda","intencao":"criar","resposta":"Posso criar 'Reunião com João' amanhã 09:00–10:00.",
+            "recomendacao":"Confirmo o envio do convite?","janela_tempo":{{"de":"2025-09-29T09:00","ate":"2025-09-29T10:00",
+            "rotulo":"amanhã 09:00–10:00"}},"evento":{{"titulo":"Reunião com João","data":"2025-09-29","inicio":"09:00","fim":"10:00",
+            "local":"online"}}}}""",
             "ai": """Posso criar 'Reunião com João' amanhã 09:00–10:00.\n- *Recomendação*:\nConfirmo o envio do convite?"""
         },
     ]
@@ -321,10 +321,10 @@ def orquestrador_resp(user_id: int, session_id: int):
         MessagesPlaceholder("chat_history"),
         ("human", "{input}"),
     ])
-    prompt_roteador = prompt_roteador.partial(today=today.isoformat(),time=hour.isoformat())
-    chain_roteador = RunnableWithMessageHistory(
+    prompt_orquestrador = prompt_orquestrador.partial(today=today.isoformat(),time=hour.isoformat())
+    chain_orquestrador = RunnableWithMessageHistory(
         get_session_history=lambda _: get_session_history(user_id, session_id),
         input_messages_key="input",
         history_messages_key="chat_history"
     )
-    return chain_roteador
+    return chain_orquestrador
