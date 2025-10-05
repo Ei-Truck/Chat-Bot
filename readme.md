@@ -18,10 +18,13 @@ app/
 │   ├── text/
 │   │   └── FAQ.txt
 │   │   └── prompt_gemini.txt
+│   │   └── prompt_orquestrador.txt
+│   │   └── prompt_especialista_automobilistica.txt
+│   │   └── prompt_roteador.txt
 │   │   └── prompt_juiz.txt
 │   └── ai_model.py
-│   └── embedding.py
-│   └── histChat.py
+│   └── ai_rag.py.py
+│   └── ai_manager.py
 ├── config/
 │   └── config.py
 ├── routes/
