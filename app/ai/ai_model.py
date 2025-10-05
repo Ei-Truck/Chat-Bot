@@ -21,28 +21,21 @@ load_dotenv()
 TZ = ZoneInfo("America/Sao_Paulo")
 today_local = datetime.now(TZ).date()
 
-
 # Configura a API key
 chave_api = os.getenv("GEMINI_API_KEY")
 mongo_host = os.getenv("CONNSTRING")
 
-llm_fast = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash", temperature=0, google_api_key=chave_api
-)
+llm_fast = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_api_key=chave_api)
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash", temperature=0.7, top_p=0.95, google_api_key=chave_api
-)
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.7, top_p=0.95, google_api_key=chave_api)
 
 
 # Verificar pergunta
 def verifica_pergunta(pergunta: str) -> str:
     prompt_avaliacao = (
-        "Você é um assistente que verifica se um texto contém "
-        "linguagem ofensiva, discurso de ódio, calúnia ou difamação. "
-        "Responda 'SIM' se contiver e 'NÃO' caso contrário. Seja estrito na sua avaliação."
+        "Você é um assistente que verifica se um texto contém linguagem ofensiva, discurso de ódio, calúnia "
+        "ou difamação. Responda 'SIM' se contiver e 'NÃO' caso contrário. Seja estrito na sua avaliação."
     )
-
     resposta_llm = llm_fast.invoke(
         [HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)]
     )
@@ -64,50 +57,58 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
         prompt_roteador_text = f.read()
 
     system_prompt_roteador = ("system", prompt_roteador_text)
+
     prompt_roteador = ChatPromptTemplate.from_messages(
         [
             HumanMessagePromptTemplate.from_template("{input}"),
             AIMessagePromptTemplate.from_template("{output}"),
         ]
     )
+
     shots_roteador = [
         {
             "input": "Oi, tudo bem?",
-            "output": "Olá! Posso te ajudar com dúvidas sobre telemetria, frota ou sistemas do EiTruck. Por onde quer começar?",
+            "output": "Olá! Posso te ajudar com dúvidas sobre telemetria, frota ou sistemas do EiTruck. "
+                      "Por onde quer começar?",
         },
         {
             "input": "Me conta uma piada.",
-            "output": "Consigo ajudar apenas com informações técnicas do EiTruck. Quer saber sobre telemetria, monitoramento de frota ou sistemas de manutenção?",
+            "output": "Consigo ajudar apenas com informações técnicas do EiTruck. "
+                      "Quer saber sobre telemetria, monitoramento de frota ou sistemas de manutenção?",
         },
         {
             "input": "Como funciona o bloqueio remoto do veículo?",
-            "output": "ROUTE=\nPERGUNTA_ORIGINAL=Como funciona o bloqueio remoto do veículo?\nPERSONA={PERSONA_SISTEMA}\nCLARIFY=",
+            "output": "ROUTE=\nPERGUNTA_ORIGINAL=Como funciona o bloqueio remoto do veículo?\n"
+                      "PERSONA={PERSONA_SISTEMA}\nCLARIFY=",
         },
         {
             "input": "Quero informações sobre sensores.",
-            "output": "Você quer detalhes sobre sensores para telemetria veicular ou sensores para integração industrial?",
+            "output": "Você quer detalhes sobre sensores para telemetria veicular ou sensores para "
+                      "integração industrial?",
         },
         {
             "input": "Quando a próxima manutenção da frota está agendada?",
-            "output": "ROUTE=agenda\nPERGUNTA_ORIGINAL=Quando a próxima manutenção da frota está agendada?\nPERSONA={PERSONA_SISTEMA}\nCLARIFY=",
+            "output": "ROUTE=agenda\nPERGUNTA_ORIGINAL=Quando a próxima manutenção da frota está agendada?\n"
+                      "PERSONA={PERSONA_SISTEMA}\nCLARIFY=",
         },
     ]
 
     fewshots_roteador = FewShotChatMessagePromptTemplate(
-        examples=shots_roteador,
-        example_prompt=prompt_roteador,
+        examples=shots_roteador, example_prompt=prompt_roteador
     )
 
     prompt_roteador = ChatPromptTemplate.from_messages(
         [
-            system_prompt_roteador,  # system prompt
-            fewshots_roteador,  # Shots input/output
-            MessagesPlaceholder("chat_history"),  # memória
-            ("human", "{input}"),  # user prompt
+            system_prompt_roteador,
+            fewshots_roteador,
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
         ]
     )
+
     prompt_roteador = prompt_roteador.partial(today_local=today_local.isoformat())
     chain_roteador = prompt_roteador | llm_fast | StrOutputParser()
+
     chain_roteador = RunnableWithMessageHistory(
         chain_roteador,
         get_session_history=lambda _: get_session_history(user_id, session_id),
@@ -117,55 +118,69 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
     return chain_roteador
 
 
-# Agentes especialistas
-# Especialista em automobilistica
+# Especialista em automobilística
 def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
-    with open(
-        "./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8"
-    ) as f:
+    with open("./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8") as f:
         prompt_especialista_text = f.read()
+
     system_prompt_especialista = ("system", prompt_especialista_text)
+
     prompt_especialista = ChatPromptTemplate.from_messages(
         [
             HumanMessagePromptTemplate.from_template("{input}"),
             AIMessagePromptTemplate.from_template("{output}"),
         ]
     )
+
     shots_especialista = [
         {
-            "input": "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual é a principal função da telemetria?\nPERSONA={PERSONA_SISTEMA}\nCLARIFY=",
-            "output": """{{"dominio":"automobilistica","resposta":"A telemetria é utilizada em diversas áreas, incluindo:
-    - Veículos (monitoramento de frota)\n- Medicina (monitoramento de pacientes)\n- Indústria (manutenção preditiva)
-    - Energia (monitoramento de redes elétricas)\n- Agricultura (sensores em plantações)\n- Esportes (dados de desempenho de atletas)
-    - Aviação (sistemas de voo e caixa preta)\n- Defesa (monitoramento de drones e equipamentos remotos)\n- Meteorologia (sensores climáticos remotos)
-    - Smart Cities (monitoramento de trânsito, iluminação e resíduos)","recomendacao":"Quer detalhar por estabelecimento?","janela_tempo":{{"de":"2025-08-01","ate":"2025-08-31","rotulo":"mês passado (ago/2025)"}}}}""",
+            "input": "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual é a principal função da telemetria?\n"
+                     "PERSONA={PERSONA_SISTEMA}\nCLARIFY=",
+            "output": """{"dominio":"automobilistica","resposta":"A telemetria é utilizada em diversas áreas, incluindo:
+- Veículos (monitoramento de frota)
+- Medicina (monitoramento de pacientes)
+- Indústria (manutenção preditiva)
+- Energia (monitoramento de redes elétricas)
+- Agricultura (sensores em plantações)
+- Esportes (dados de desempenho de atletas)
+- Aviação (sistemas de voo e caixa preta)
+- Defesa (monitoramento de drones e equipamentos remotos)
+- Meteorologia (sensores climáticos remotos)
+- Smart Cities (monitoramento de trânsito, iluminação e resíduos)",
+"recomendacao":"Quer detalhar por estabelecimento?",
+"janela_tempo":{"de":"2025-08-01","ate":"2025-08-31","rotulo":"mês passado (ago/2025)"}}""",
         },
         {
-            "input": "ROUTE=financeiro\nPERGUNTA_ORIGINAL=Registrar almoço hoje R$ 45 no débito\nPERSONA={PERSONA_SISTEMA}\nCLARIFY=",
-            "output": """{{"dominio":"financeiro","resposta":"Lancei R$ 45,00 em 'comida' hoje (débito).","recomendacao":"Deseja adicionar uma observação?","escrita":{{"operacao":"adicionar","id":2045}}}}""",
+            "input": "ROUTE=financeiro\nPERGUNTA_ORIGINAL=Registrar almoço hoje R$ 45 no débito\n"
+                     "PERSONA={PERSONA_SISTEMA}\nCLARIFY=",
+            "output": """{"dominio":"financeiro","resposta":"Lancei R$ 45,00 em 'comida' hoje (débito).",
+"recomendacao":"Deseja adicionar uma observação?",
+"escrita":{"operacao":"adicionar","id":2045}}""",
         },
         {
-            "input": "ROUTE=financeiro\nPERGUNTA_ORIGINAL=Quero um resumo dos gastos\nPERSONA={PERSONA_SISTEMA}\nCLARIFY=",
-            "output": """{{"dominio":"financeiro","resposta":"Preciso do período para seguir.","recomendacao":"","esclarecer":"Qual período considerar (ex.: hoje, esta semana, mês passado)?"}}""",
+            "input": "ROUTE=financeiro\nPERGUNTA_ORIGINAL=Quero um resumo dos gastos\nPERSONA={PERSONA_SISTEMA}\n"
+                     "CLARIFY=",
+            "output": """{"dominio":"financeiro","resposta":"Preciso do período para seguir.",
+"recomendacao":"","esclarecer":"Qual período considerar (ex.: hoje, esta semana, mês passado)?"}""",
         },
     ]
 
     fewshots_especialista = FewShotChatMessagePromptTemplate(
-        examples=shots_especialista,
-        example_prompt=prompt_especialista,
+        examples=shots_especialista, example_prompt=prompt_especialista
     )
 
     prompt_especialista = ChatPromptTemplate.from_messages(
         [
-            system_prompt_especialista,  # system prompt
-            fewshots_especialista,  # Shots input/output
-            MessagesPlaceholder("chat_history"),  # memória
-            ("human", "{input}"),  # user prompt
+            system_prompt_especialista,
+            fewshots_especialista,
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
         ]
     )
 
     prompt_especialista = prompt_especialista.partial(today_local=today_local.isoformat())
     chain_auto = prompt_especialista | llm | StrOutputParser()
+
     chain_auto = RunnableWithMessageHistory(
         chain_auto,
         get_session_history=lambda _: get_session_history(user_id, session_id),
@@ -187,8 +202,10 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
             AIMessagePromptTemplate.from_template("{output}"),
         ]
     )
+
     shots = []
     fewshots = FewShotChatMessagePromptTemplate(examples=shots, example_prompt=prompt)
+
     prompt = ChatPromptTemplate.from_messages(
         [
             system_prompt,
@@ -197,7 +214,9 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
             ("human", "{input}"),
         ]
     )
+
     base_chain = prompt | llm | StrOutputParser()
+
     chain_gemini = RunnableWithMessageHistory(
         base_chain,
         get_session_history=lambda _: get_session_history(user_id, session_id),
@@ -211,20 +230,23 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
 def juiz_resposta(question: str, answer: str, user_id: int, session_id: int) -> str:
     session = f"{user_id}_{session_id}"
     user = "Pergunta: " + question + "\nResposta: " + answer
-    juiz = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash", temperature=0.5, google_api_key=chave_api
-    )
+
+    juiz = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.5, google_api_key=chave_api)
+
     with open("./app/ai/text/prompt_juiz.txt", "r", encoding="utf-8") as f:
         prompt_juiz_text = f.read()
+
     system_prompt = ("system", prompt_juiz_text)
+
     prompt = ChatPromptTemplate.from_messages(
         [
             HumanMessagePromptTemplate.from_template("{input}"),
             AIMessagePromptTemplate.from_template("{output}"),
         ]
     )
-    shots = []
-    fewshots = FewShotChatMessagePromptTemplate(examples=shots, example_prompt=prompt)
+
+    fewshots = FewShotChatMessagePromptTemplate(examples=[], example_prompt=prompt)
+
     prompt = ChatPromptTemplate.from_messages(
         [
             system_prompt,
@@ -233,7 +255,9 @@ def juiz_resposta(question: str, answer: str, user_id: int, session_id: int) -> 
             ("human", "{input}"),
         ]
     )
+
     base_chain = prompt | juiz | StrOutputParser()
+
     chain_juiz = RunnableWithMessageHistory(
         base_chain,
         get_session_history=lambda _: get_session_history(user_id, session_id),
@@ -245,50 +269,39 @@ def juiz_resposta(question: str, answer: str, user_id: int, session_id: int) -> 
 
 # Agente Orquestrador
 def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHistory:
-    with open(
-        "./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8"
-    ) as f:
+    with open("./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8") as f:
         system_orquestrador_prompt = f.read()
+
     system_orquestrador_prompt = ("system", system_orquestrador_prompt)
+
     shots_orquestrador = [
-        # 1)  — consultar
         {
-            "input": """ESPECIALISTA_JSON:
-            {{
-                "dominio":"automobilistica",
-                "resposta":"Você gastou R$ 842,75 com 'comida' no mês passado.",
-                "recomendacao":"Quer detalhar por estabelecimento?",
-                "janela_tempo":{{"de":"2025-08-01","ate":"2025-08-31",
-                "rotulo":"mês passado (ago/2025)"}}
-            }}""",
-            "output": """Você gastou R$ 842,75 com 'comida' no mês passado.
-             *Recomendação*:\nQuer detalhar por estabelecimento?""",
+            "input": """ESPECIALISTA_JSON:{
+"dominio":"automobilistica","resposta":"Você gastou R$ 842,75 com 'comida' no mês passado.",
+"recomendacao":"Quer detalhar por estabelecimento?",
+"janela_tempo":{"de":"2025-08-01","ate":"2025-08-31","rotulo":"mês passado (ago/2025)"}}""",
+            "output": """Você gastou R$ 842,75 com 'comida' no mês passado.\n*Recomendação*:\nQuer detalhar por estabelecimento?""",
         },
-        # 2) Financeiro — falta dado → esclarecer
         {
-            "input": """ESPECIALISTA_JSON:\n{{
-                "dominio":"financeiro",
-                "resposta":"Preciso do período para seguir.",
-                "recomendacao":"",
-                "esclarecer":"Qual período considerar (ex.: hoje, esta semana, mês passado)?"}}""",
-            "output": """Preciso do período para seguir.\n- *Acompanhamento* (opcional):
-            Qual período considerar (ex.: hoje, esta semana, mês passado)?""",
+            "input": """ESPECIALISTA_JSON:{
+"dominio":"financeiro","resposta":"Preciso do período para seguir.","recomendacao":"",
+"esclarecer":"Qual período considerar (ex.: hoje, esta semana, mês passado)?"}""",
+            "output": """Preciso do período para seguir.\n*Acompanhamento* (opcional): Qual período considerar?""",
         },
-        # 3) Agenda — criar
         {
-            "input": """ESPECIALISTA_JSON:
-            {{"dominio":"agenda","resposta":"Posso criar 'Reunião com João' amanhã 09:00–10:00.",
-            "recomendacao":"Confirmo o envio do convite?","janela_tempo":{{"de":"2025-09-29T09:00","ate":"2025-09-29T10:00",
-            "rotulo":"amanhã 09:00–10:00"}},"evento":{{"titulo":"Reunião com João","data":"2025-09-29","inicio":"09:00","fim":"10:00",
-            "local":"online"}}}}""",
-            "output": """Posso criar 'Reunião com João' amanhã 09:00–10:00.\n- *Recomendação*:\nConfirmo o envio do convite?""",
+            "input": """ESPECIALISTA_JSON:{
+"dominio":"agenda","resposta":"Posso criar 'Reunião com João' amanhã 09:00–10:00.",
+"recomendacao":"Confirmo o envio do convite?",
+"janela_tempo":{"de":"2025-09-29T09:00","ate":"2025-09-29T10:00","rotulo":"amanhã 09:00–10:00"},
+"evento":{"titulo":"Reunião com João","data":"2025-09-29","inicio":"09:00","fim":"10:00","local":"online"}}""",
+            "output": """Posso criar 'Reunião com João' amanhã 09:00–10:00.\n*Recomendação*:\nConfirmo o envio do convite?""",
         },
     ]
 
     fewshots_orquestrador = FewShotChatMessagePromptTemplate(
-        examples=shots_orquestrador,
-        example_prompt=system_orquestrador_prompt,
+        examples=shots_orquestrador, example_prompt=system_orquestrador_prompt
     )
+
     prompt_orquestrador = ChatPromptTemplate.from_messages(
         [
             system_orquestrador_prompt,
@@ -297,6 +310,7 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
             ("human", "{input}"),
         ]
     )
+
     chain_orquestrador = RunnableWithMessageHistory(
         prompt_orquestrador,
         get_session_history=lambda _: get_session_history(user_id, session_id),
@@ -304,5 +318,3 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
         history_messages_key="chat_history",
     )
     return chain_orquestrador
-
-
