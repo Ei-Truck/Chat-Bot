@@ -9,6 +9,7 @@ from app.ai.ai_model import (
 from app.ai.ai_rag import embedding_files, search_embedding
 import json
 
+
 def models_management(user_id, session_id, question):
     if verifica_pergunta(question) == "SIM":
         return {"error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."}
