@@ -228,6 +228,35 @@ def juiz_resposta(user_id: int, session_id: int) -> RunnableWithMessageHistory:
     )
     return chain_juiz
 
+# Especialista em perguntas gerais 
+def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory: 
+    with open("./app/ai/text/prompt_gemini.txt", "r", encoding="utf-8") as f: 
+        prompt_gemini_text = f.read() 
+    system_prompt = ("system", prompt_gemini_text) 
+    prompt = ChatPromptTemplate.from_messages( [ 
+            HumanMessagePromptTemplate.from_template("{input}"), 
+            AIMessagePromptTemplate.from_template("{ai}"), 
+        ] ) 
+    shots = [] 
+    fewshots = FewShotChatMessagePromptTemplate(
+        examples=shots, 
+        example_prompt=prompt
+    ) 
+    prompt = ChatPromptTemplate.from_messages( [ 
+            system_prompt, 
+            fewshots, 
+            MessagesPlaceholder("chat_history"), 
+            ("human", "{input}"), 
+        ] ) 
+    base_chain = prompt | llm | StrOutputParser() 
+    chain_gemini = RunnableWithMessageHistory( 
+        base_chain,
+        get_session_history=lambda _: get_session_history(user_id, session_id), 
+        input_messages_key="input", 
+        history_messages_key="chat_history", 
+        ) 
+    return chain_gemini
+
 
 # Agente Orquestrador
 def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHistory:

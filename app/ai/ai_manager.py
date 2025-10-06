@@ -6,7 +6,10 @@ from app.ai.ai_model import (
     juiz_resposta,
     orquestrador_resp,
 )
-from app.ai.ai_rag import embedding_files, search_embedding
+from app.ai.ai_rag import (
+    embedding_files, 
+    search_embedding
+)
 import json
 
 
