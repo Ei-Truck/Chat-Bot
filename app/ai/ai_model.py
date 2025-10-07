@@ -415,7 +415,7 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
     base_chain = prompt_orquestrador | llm | StrOutputParser()
 
     chain_orquestrador = RunnableWithMessageHistory(
-        prompt_orquestrador,
+        base_chain,
         get_session_history=lambda _: get_session_history(user_id, session_id),
         input_messages_key="input",
         history_messages_key="chat_history",
