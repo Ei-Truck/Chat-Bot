@@ -6,16 +6,15 @@ from app.ai.ai_model import (
     juiz_resposta,
     orquestrador_resp,
 )
-from app.ai.ai_rag import (
-    embedding_files, 
-    search_embedding
-)
+from app.ai.ai_rag import embedding_files, search_embedding
 import json
 
 
 def models_management(user_id, session_id, question) -> str:
     if verifica_pergunta(question) == "SIM":
-        return {"error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."}
+        return {
+            "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
+        }
 
     embedding_files()
     encontrado = search_embedding(question)

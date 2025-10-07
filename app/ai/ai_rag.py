@@ -6,8 +6,10 @@ import os
 
 load_dotenv()
 
+
 def get_model() -> SentenceTransformer:
     return SentenceTransformer("paraphrase-MiniLM-L3-v2")
+
 
 mongo_host = os.getenv("CONNSTRING")
 

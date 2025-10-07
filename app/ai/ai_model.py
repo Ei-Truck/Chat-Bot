@@ -114,10 +114,9 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
                 "PERGUNTA_ORIGINAL=O que é telemetria?\n"
                 "PERSONA={PERSONA_SISTEMA}\n"
                 "CLARIFY="
-                ),
-            },
-        ]
-
+            ),
+        },
+    ]
 
     fewshots_roteador = FewShotChatMessagePromptTemplate(
         examples=shots_roteador, example_prompt=prompt_roteador
@@ -167,7 +166,7 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
                 "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
             ),
             "output": (
-                '''{
+                """{
                         "dominio":"automobilistica",
                         "resposta":"A telemetria é utilizada em diversas áreas, 
                         incluindo: '
@@ -181,7 +180,7 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
                             - Defesa (monitoramento de drones e equipamentos remotos)
                             - Meteorologia (sensores climáticos remotos) 
                             - Smart Cities (monitoramento de trânsito, iluminação e resíduos)"
-                '''
+                """
             ),
         }
     ]
@@ -199,7 +198,9 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
         ]
     )
 
-    prompt_especialista = prompt_especialista.partial(today_local=today_local.isoformat())
+    prompt_especialista = prompt_especialista.partial(
+        today_local=today_local.isoformat()
+    )
     chain_auto = prompt_especialista | llm | StrOutputParser()
 
     chain_auto = RunnableWithMessageHistory(
@@ -242,15 +243,18 @@ def juiz_resposta(user_id: int, session_id: int) -> RunnableWithMessageHistory:
     )
     return chain_juiz
 
-# Especialista em perguntas gerais 
-def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory: 
-    with open("./app/ai/text/prompt_gemini.txt", "r", encoding="utf-8") as f: 
-        prompt_gemini_text = f.read() 
-    system_prompt = ("system", prompt_gemini_text) 
-    prompt = ChatPromptTemplate.from_messages( [ 
-            HumanMessagePromptTemplate.from_template("{input}"), 
-            AIMessagePromptTemplate.from_template("{ai}"), 
-        ] ) 
+
+# Especialista em perguntas gerais
+def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
+    with open("./app/ai/text/prompt_gemini.txt", "r", encoding="utf-8") as f:
+        prompt_gemini_text = f.read()
+    system_prompt = ("system", prompt_gemini_text)
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            HumanMessagePromptTemplate.from_template("{input}"),
+            AIMessagePromptTemplate.from_template("{ai}"),
+        ]
+    )
     shots = [
         {
             "input": "O que é telemetria?",
@@ -331,7 +335,7 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
                 "PERGUNTA_ORIGINAL=Como funciona o suporte técnico do EiTruck?\n"
                 "PERSONA={PERSONA_SISTEMA}\n"
                 "CLARIFY="
-                ),
+            ),
         },
         {
             "input": "O que é análise de comportamento do motorista?",
@@ -342,25 +346,23 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
                 "CLARIFY="
             ),
         },
-    
-    ] 
-    fewshots = FewShotChatMessagePromptTemplate(
-        examples=shots, 
-        example_prompt=prompt
-    ) 
-    prompt = ChatPromptTemplate.from_messages( [ 
-            system_prompt, 
-            fewshots, 
-            MessagesPlaceholder("chat_history"), 
-            ("human", "{input}"), 
-        ] ) 
-    base_chain = prompt | llm | StrOutputParser() 
-    chain_gemini = RunnableWithMessageHistory( 
+    ]
+    fewshots = FewShotChatMessagePromptTemplate(examples=shots, example_prompt=prompt)
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            system_prompt,
+            fewshots,
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
+        ]
+    )
+    base_chain = prompt | llm | StrOutputParser()
+    chain_gemini = RunnableWithMessageHistory(
         base_chain,
-        get_session_history=lambda _: get_session_history(user_id, session_id), 
-        input_messages_key="input", 
-        history_messages_key="chat_history", 
-        ) 
+        get_session_history=lambda _: get_session_history(user_id, session_id),
+        input_messages_key="input",
+        history_messages_key="chat_history",
+    )
     return chain_gemini
 
 
