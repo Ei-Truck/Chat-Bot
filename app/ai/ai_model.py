@@ -78,39 +78,46 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
         {
             "input": "Oi, tudo bem?",
             "output": (
-                "Olá! Posso te ajudar com dúvidas sobre telemetria, frota ou sistemas do EiTruck. "
-                "Por onde quer começar?"
+                "Olá! Sou o EiTruck.AI. Posso te ajudar com dúvidas sobre telemetria, frota ou sistemas do EiTruck. "
+                "Sobre qual desses temas você quer falar?"
             ),
         },
         {
             "input": "Me conta uma piada.",
             "output": (
-                "Consigo ajudar apenas com informações técnicas do EiTruck. "
-                "Quer saber sobre telemetria, monitoramento de frota ou sistemas de manutenção?"
+                "Eu só respondo a dúvidas técnicas sobre o EiTruck. "
+                "Quer falar sobre telemetria, monitoramento de frota ou manutenção?"
             ),
         },
         {
             "input": "Como funciona o bloqueio remoto do veículo?",
             "output": (
-                "ROUTE=\nPERGUNTA_ORIGINAL=Como funciona o bloqueio remoto do veículo?\n"
-                "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
+                "ROUTE=automobilistica\n"
+                "PERGUNTA_ORIGINAL=Como funciona o bloqueio remoto do veículo?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
             ),
         },
         {
             "input": "Quero informações sobre sensores.",
             "output": (
-                "Você quer detalhes sobre sensores para telemetria veicular "
-                "ou sensores para integração industrial?"
+                "ROUTE=automobilistica\n"
+                "PERGUNTA_ORIGINAL=Quero informações sobre sensores.\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
             ),
         },
         {
-            "input": "Quando a próxima manutenção da frota está agendada?",
+            "input": "O que é telemetria?",
             "output": (
-                "ROUTE=agenda\nPERGUNTA_ORIGINAL=Quando a próxima manutenção da frota está agendada?\n"
-                "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
-            ),
-        },
-    ]
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=O que é telemetria?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+                ),
+            },
+        ]
+
 
     fewshots_roteador = FewShotChatMessagePromptTemplate(
         examples=shots_roteador, example_prompt=prompt_roteador
@@ -160,14 +167,21 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
                 "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
             ),
             "output": (
-                '{"dominio":"automobilistica","resposta":"A telemetria é utilizada em diversas áreas, incluindo: '
-                '- Veículos (monitoramento de frota) - Medicina (monitoramento de pacientes) - Indústria '
-                '(manutenção preditiva) - Energia (monitoramento de redes elétricas) - Agricultura '
-                '(sensores em plantações) - Esportes (dados de desempenho de atletas) - Aviação '
-                '(sistemas de voo e caixa preta) - Defesa (monitoramento de drones e equipamentos remotos) '
-                '- Meteorologia (sensores climáticos remotos) - Smart Cities (monitoramento de trânsito, '
-                'iluminação e resíduos)", "recomendacao":"Quer detalhar por estabelecimento?", '
-                '"janela_tempo":{"de":"2025-08-01","ate":"2025-08-31","rotulo":"mês passado (ago/2025)"}}'
+                '''{
+                        "dominio":"automobilistica",
+                        "resposta":"A telemetria é utilizada em diversas áreas, 
+                        incluindo: '
+                            '- Veículos (monitoramento de frota) 
+                            - Medicina (monitoramento de pacientes) 
+                            - Indústria (manutenção preditiva) 
+                            - Energia (monitoramento de redes elétricas) 
+                            - Agricultura (sensores em plantações) 
+                            - Esportes (dados de desempenho de atletas) 
+                            - Aviação (sistemas de voo e caixa preta) 
+                            - Defesa (monitoramento de drones e equipamentos remotos)
+                            - Meteorologia (sensores climáticos remotos) 
+                            - Smart Cities (monitoramento de trânsito, iluminação e resíduos)"
+                '''
             ),
         }
     ]
@@ -237,7 +251,99 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
             HumanMessagePromptTemplate.from_template("{input}"), 
             AIMessagePromptTemplate.from_template("{ai}"), 
         ] ) 
-    shots = [] 
+    shots = [
+        {
+            "input": "O que é telemetria?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=O que é telemetria?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Como o EiTruck coleta os dados dos veículos?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Como o EiTruck coleta os dados dos veículos?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Quais são os principais serviços oferecidos pela EiTruck?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Quais são os principais serviços oferecidos pela EiTruck?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "O sistema do EiTruck precisa de internet para funcionar?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=O sistema do EiTruck precisa de internet para funcionar?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Como posso acessar os relatórios de telemetria?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Como posso acessar os relatórios de telemetria?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "O que diferencia o EiTruck de outros sistemas de gestão de frota?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=O que diferencia o EiTruck de outros sistemas de gestão de frota?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Posso integrar o EiTruck com outros sistemas da empresa?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Posso integrar o EiTruck com outros sistemas da empresa?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Os dados de telemetria são armazenados por quanto tempo?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Os dados de telemetria são armazenados por quanto tempo?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Como funciona o suporte técnico do EiTruck?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Como funciona o suporte técnico do EiTruck?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+                ),
+        },
+        {
+            "input": "O que é análise de comportamento do motorista?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=O que é análise de comportamento do motorista?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+    
+    ] 
     fewshots = FewShotChatMessagePromptTemplate(
         examples=shots, 
         example_prompt=prompt

@@ -6,7 +6,8 @@ import os
 
 load_dotenv()
 
-model = SentenceTransformer("paraphrase-MiniLM-L3-v2")
+def get_model() -> SentenceTransformer:
+    return SentenceTransformer("paraphrase-MiniLM-L3-v2")
 
 mongo_host = os.getenv("CONNSTRING")
 
@@ -16,7 +17,8 @@ db = client["chatbot_db"]
 collection = db["documents"]
 
 
-def embedding_files(folder_path="./app/ai/text"):
+def embedding_files(folder_path="./app/ai/text") -> None:
+    model = get_model()
     for filename in os.listdir(folder_path):
         filepath = os.path.join(folder_path, filename)
         if not os.path.isfile(filepath):
@@ -31,9 +33,11 @@ def embedding_files(folder_path="./app/ai/text"):
                 {"$set": {"text": text, "embedding": embedding.tolist()}},
                 upsert=True,
             )
+    del model
 
 
 def search_embedding(question, top_k=1) -> list:
+    model = get_model()
     question_embedded = model.encode(question).tolist()
     result = collection.find({"embedding": {"$exists": True}})
     results = []
@@ -42,4 +46,5 @@ def search_embedding(question, top_k=1) -> list:
         distance = cosine_similarity([question_embedded], [doc_embedding])[0][0]
         results.append((distance, doc["text"]))
     results = sorted(results, key=lambda x: x[0], reverse=True)[:top_k]
+    del model
     return results
