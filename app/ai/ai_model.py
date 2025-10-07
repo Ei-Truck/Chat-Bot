@@ -160,29 +160,28 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
     )
 
     shots_especialista = [
-        {
-            "input": (
-                "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual é a principal função da telemetria?\n"
-                "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
-            ),
-            "output": (
-                """{
-                        "dominio":"automobilistica",
-                        "resposta":"A telemetria é utilizada em diversas áreas, 
-                        incluindo: '
-                            '- Veículos (monitoramento de frota) 
-                            - Medicina (monitoramento de pacientes) 
-                            - Indústria (manutenção preditiva) 
-                            - Energia (monitoramento de redes elétricas) 
-                            - Agricultura (sensores em plantações) 
-                            - Esportes (dados de desempenho de atletas) 
-                            - Aviação (sistemas de voo e caixa preta) 
-                            - Defesa (monitoramento de drones e equipamentos remotos)
-                            - Meteorologia (sensores climáticos remotos) 
-                            - Smart Cities (monitoramento de trânsito, iluminação e resíduos)"
-                """
-            ),
-        }
+    {
+        "input": (
+            "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual é a principal função da telemetria?\n"
+            "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
+        ),
+        "output": (
+            """{
+                    "dominio": "automobilistica",
+                    "resposta": "A telemetria é utilizada em diversas áreas, incluindo: "
+                        "- Veículos (monitoramento de frota) "
+                        "- Medicina (monitoramento de pacientes) "
+                        "- Indústria (manutenção preditiva) "
+                        "- Energia (monitoramento de redes elétricas) "
+                        "- Agricultura (sensores em plantações) "
+                        "- Esportes (dados de desempenho de atletas) "
+                        "- Aviação (sistemas de voo e caixa preta) "
+                        "- Defesa (monitoramento de drones e equipamentos remotos) "
+                        "- Meteorologia (sensores climáticos remotos) "
+                        "- Smart Cities (monitoramento de trânsito, iluminação e resíduos)"
+            """
+        ),
+    }
     ]
 
     fewshots_especialista = FewShotChatMessagePromptTemplate(
