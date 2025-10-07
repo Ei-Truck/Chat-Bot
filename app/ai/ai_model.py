@@ -43,8 +43,7 @@ def verifica_pergunta(pergunta: str) -> str:
     prompt_avaliacao = (
         "Você é um assistente que verifica se um texto contém linguagem ofensiva, discurso de ódio, "
         "calúnia ou difamação. Responda 'SIM' se contiver e 'NÃO' caso contrário. "
-        "Seja estrito na sua avaliação."
-    )
+        "Seja estrito na sua avaliação.")
     resposta_llm = llm_fast.invoke(
         [HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)]
     )
@@ -76,47 +75,27 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
 
     shots_roteador = [
         {
-            "input": "Oi, tudo bem?",
-            "output": (
+            "input": "Oi, tudo bem?", "output": (
                 "Olá! Sou o EiTruck.AI. Posso te ajudar com dúvidas sobre telemetria, frota ou sistemas do EiTruck. "
-                "Sobre qual desses temas você quer falar?"
-            ),
-        },
-        {
-            "input": "Me conta uma piada.",
-            "output": (
+                "Sobre qual desses temas você quer falar?"), }, {
+            "input": "Me conta uma piada.", "output": (
                 "Eu só respondo a dúvidas técnicas sobre o EiTruck. "
-                "Quer falar sobre telemetria, monitoramento de frota ou manutenção?"
-            ),
-        },
-        {
-            "input": "Como funciona o bloqueio remoto do veículo?",
-            "output": (
+                "Quer falar sobre telemetria, monitoramento de frota ou manutenção?"), }, {
+            "input": "Como funciona o bloqueio remoto do veículo?", "output": (
                 "ROUTE=automobilistica\n"
                 "PERGUNTA_ORIGINAL=Como funciona o bloqueio remoto do veículo?\n"
                 "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
-        {
-            "input": "Quero informações sobre sensores.",
-            "output": (
+                "CLARIFY="), }, {
+            "input": "Quero informações sobre sensores.", "output": (
                 "ROUTE=automobilistica\n"
                 "PERGUNTA_ORIGINAL=Quero informações sobre sensores.\n"
                 "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
-        {
-            "input": "O que é telemetria?",
-            "output": (
-                "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=O que é telemetria?\n"
-                "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
-    ]
+                "CLARIFY="), }, {
+            "input": "O que é telemetria?", "output": (
+                                            "ROUTE=outros\n"
+                                            "PERGUNTA_ORIGINAL=O que é telemetria?\n"
+                                            "PERSONA={PERSONA_SISTEMA}\n"
+                                            "CLARIFY="), }, ]
 
     fewshots_roteador = FewShotChatMessagePromptTemplate(
         examples=shots_roteador, example_prompt=prompt_roteador
@@ -131,7 +110,8 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
         ]
     )
 
-    prompt_roteador = prompt_roteador.partial(today_local=today_local.isoformat())
+    prompt_roteador = prompt_roteador.partial(
+        today_local=today_local.isoformat())
     chain_roteador = prompt_roteador | llm_fast | StrOutputParser()
 
     chain_roteador = RunnableWithMessageHistory(
@@ -160,13 +140,10 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
     )
 
     shots_especialista = [
-    {
-        "input": (
-            "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual é a principal função da telemetria?\n"
-            "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
-        ),
-        "output": (
-            """{
+        {
+            "input": (
+                "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual é a principal função da telemetria?\n"
+                "PERSONA={PERSONA_SISTEMA}\nCLARIFY="), "output": ("""{
                     "dominio": "automobilistica",
                     "resposta": "A telemetria é utilizada em diversas áreas, incluindo: "
                         "- Veículos (monitoramento de frota) "
@@ -179,10 +156,7 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
                         "- Defesa (monitoramento de drones e equipamentos remotos) "
                         "- Meteorologia (sensores climáticos remotos) "
                         "- Smart Cities (monitoramento de trânsito, iluminação e resíduos)"
-            """
-        ),
-    }
-    ]
+            """), }]
 
     fewshots_especialista = FewShotChatMessagePromptTemplate(
         examples=shots_especialista, example_prompt=prompt_especialista
@@ -346,7 +320,8 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
             ),
         },
     ]
-    fewshots = FewShotChatMessagePromptTemplate(examples=shots, example_prompt=prompt)
+    fewshots = FewShotChatMessagePromptTemplate(
+        examples=shots, example_prompt=prompt)
     prompt = ChatPromptTemplate.from_messages(
         [
             system_prompt,
@@ -366,7 +341,9 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
 
 
 # Agente Orquestrador
-def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHistory:
+def orquestrador_resp(
+        user_id: int,
+        session_id: int) -> RunnableWithMessageHistory:
     with open(
         "./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8"
     ) as f:
