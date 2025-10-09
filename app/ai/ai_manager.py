@@ -66,7 +66,7 @@ def _finalizar_resposta(user_id, session_id, resposta) -> str:
         resposta = resposta.split("```json")[-1].strip()
     if "```" in resposta:
         resposta = resposta.split("```")[0].strip()
-    print(resposta)
+        
     resposta = json.loads(resposta)
 
     resposta = resposta.get("output", resposta)
