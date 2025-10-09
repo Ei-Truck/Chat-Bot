@@ -373,9 +373,7 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
 def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHistory:
     llm = get_llm()
 
-    with open(
-        "./app/ai/text/prompt_orquestrador.txt", "r", encoding="utf-8"
-    ) as f:
+    with open("./app/ai/text/prompt_orquestrador.txt", "r", encoding="utf-8") as f:
         system_orquestrador_prompt = f.read()
 
     system_orquestrador_prompt = ("system", system_orquestrador_prompt)

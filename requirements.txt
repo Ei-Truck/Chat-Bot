@@ -2,26 +2,26 @@
 pip>=25.2
 setuptools>=70.0.0
 wheel>=0.44.0
- 
+
 # Flask
 Flask~=3.1.1
- 
+
 # Google Gemini API
 google-generativeai==0.8.5
 langchain-google-genai==2.0.10
 protobuf>=3.19.5,<5.0.0
- 
+
 # LangChain
 langchain~=0.3.25
 langchain-core~=0.3.62
 langchain-community~=0.3.25
 langchain-text-splitters~=0.3.8
 langchain-mongodb~=0.4.0
- 
+
 # Environment variables
 python-dotenv~=1.1.0
 dotenv~=0.9.9
- 
+
 # Utilities
 marshmallow~=3.26.1
 sentence-transformers>=2.6.1
@@ -31,6 +31,6 @@ tokenizers==0.20.3
 huggingface-hub>=0.23.2,<1.0
 pymongo~=4.6.1
 prompt_toolkit==3.0.38
- 
+
 # Timezone data
 tzdata; platform_system == "Windows"
