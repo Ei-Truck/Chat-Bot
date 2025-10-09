@@ -374,7 +374,7 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
     llm = get_llm()
 
     with open(
-        "./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8"
+        "./app/ai/text/prompt_orquestrador.txt", "r", encoding="utf-8"
     ) as f:
         system_orquestrador_prompt = f.read()
 
@@ -383,8 +383,8 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
     shots_orquestrador = [
         {
             "input": (
-                "ESPECIALISTA_JSON:{'dominio':'automobilistica','resposta':'Você gastou R$ 842,75 com comida',"
-                "'recomendacao':'Quer detalhar por estabelecimento?'}"
+                "ESPECIALISTA_JSON:{{'dominio':'automobilistica','resposta':'Você gastou R$ 842,75 com comida',"
+                "'recomendacao':'Quer detalhar por estabelecimento?'}}"
             ),
             "output": (
                 "Você gastou R$ 842,75 com comida.\n*Recomendação*:\nQuer detalhar por estabelecimento?"
