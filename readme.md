@@ -3,6 +3,9 @@
 
 Bem-vindo à documentação do projeto! Aqui você encontra tudo o que precisa pra rodar, entender e usar essa aplicação com IA no Flask.
 
+
+
+
 ---
 
 ## 📁 Estrutura do Projeto
@@ -14,9 +17,14 @@ app/
 ├── ai/
 │   ├── text/
 │   │   └── FAQ.txt
+│   │   └── prompt_gemini.txt
+│   │   └── prompt_orquestrador.txt
+│   │   └── prompt_especialista_automobilistica.txt
+│   │   └── prompt_roteador.txt
+│   │   └── prompt_juiz.txt
 │   └── ai_model.py
-│   └── embedding.py
-│   └── histChat.py
+│   └── ai_rag.py.py
+│   └── ai_manager.py
 ├── config/
 │   └── config.py
 ├── routes/
@@ -82,7 +90,8 @@ app/
   ```json
   {
     "question": "Sua pergunta aqui",
-    "user_id": 1
+    "user_id": 1,
+    "session_id":0
   }
   ```
 
