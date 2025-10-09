@@ -60,9 +60,9 @@ Avaliar se a resposta de um tutor de IA atende corretamente à pergunta do usuá
 Você deve retornar **exclusivamente** um objeto JSON válido:  
 
 ```json
-{
+{{
   "status": "Aprovado" ou "Reprovado",
   "question": "<pergunta recebida>",
   "answer": "<resposta original do tutor antes da correção>",
   "judgmentAnswer": "<versão melhorada obrigatória>"
-}
+}}
