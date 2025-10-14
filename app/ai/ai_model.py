@@ -105,10 +105,10 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
             ),
         },
         {
-            "input": "Quero informações sobre sensores.",
+            "input": "Quero informações sobre telemetria.",
             "output": (
-                "ROUTE=automobilistica\n"
-                "PERGUNTA_ORIGINAL=Quero informações sobre sensores.\n"
+                "ROUTE=faq\n"
+                "PERGUNTA_ORIGINAL=Quero informações sobre telemetria.\n"
                 "PERSONA={PERSONA_SISTEMA}\n"
                 "CLARIFY="
             ),
