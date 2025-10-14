@@ -11,22 +11,11 @@ import json
 
 
 def models_management(user_id, session_id, question) -> str:
+    embedding_files()
     if verifica_pergunta(question) == "SIM":
         return {
             "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
         }
-
-    embedding_files()
-    encontrado = search_embedding(question)
-    score = float(encontrado[0][0])
-
-    if score <= 0.6:
-        resposta = _processar_pergunta(user_id, session_id, question)
-    else:
-        resposta = encontrado[1]
-
-    return _finalizar_resposta(user_id, session_id, resposta)
-
 
 def _processar_pergunta(user_id, session_id, question) -> str:
     session = f"{user_id}_{session_id}"
@@ -37,6 +26,15 @@ def _processar_pergunta(user_id, session_id, question) -> str:
 
     if "ROUTE=" not in resposta_roteador:
         return resposta_roteador
+    
+    if "ROUTE=faq" in resposta_roteador:
+        encontrado = search_embedding(question)
+        score = float(encontrado[0][0])
+        if score <= 0.6:
+            resposta = _processar_pergunta(user_id, session_id, question)
+        else:
+            resposta = encontrado[1]
+            return _finalizar_resposta(user_id, session_id, resposta)
 
     if "ROUTE=automobilistica" in resposta_roteador:
         resposta = especialista_auto(user_id, session_id).invoke(
