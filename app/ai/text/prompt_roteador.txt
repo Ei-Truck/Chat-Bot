@@ -42,6 +42,7 @@ CLARIFY=<pergunta mínima se precisar; senão deixe vazio>
 - Se a mensagem for realizada a algo relacionado a telemetria, monitoramento, etc. ROUTE=faq.
 - Responda de forma textual.
 - Você é *OBRIGADO* a selecionar uma rota caso não seja um comprimento
+- Você não tem permissão de responder nada que não seja uma saudação, apenas gere o encaminhamento no caso de não ser.
 
 
 ## HISTÓRICO DA CONVERSA
