@@ -16,8 +16,10 @@ def models_management(user_id, session_id, question) -> str:
         return {
             "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
         }
+    return _processar_pergunta(user_id, session_id, question)
 
 def _processar_pergunta(user_id, session_id, question) -> str:
+    original_question = question    
     session = f"{user_id}_{session_id}"
     resposta_roteador = roteador_eitruck(user_id, session_id).invoke(
         {"input": question},
@@ -28,12 +30,15 @@ def _processar_pergunta(user_id, session_id, question) -> str:
         return resposta_roteador
     
     if "ROUTE=faq" in resposta_roteador:
-        encontrado = search_embedding(question)
+        encontrado = search_embedding(original_question, top_k=1)
         score = float(encontrado[0][0])
-        if score <= 0.6:
-            resposta = _processar_pergunta(user_id, session_id, question)
+        if score <= 0.8:
+            resposta = gemini_resp(user_id, session_id).invoke(
+            {"input": resposta_roteador},
+            config={"configurable": {"session_id": session}},
+        )
         else:
-            resposta = encontrado[1]
+            resposta = encontrado[0][1]
             return _finalizar_resposta(user_id, session_id, resposta)
 
     if "ROUTE=automobilistica" in resposta_roteador:
@@ -41,17 +46,18 @@ def _processar_pergunta(user_id, session_id, question) -> str:
             {"input": resposta_roteador},
             config={"configurable": {"session_id": session}},
         )
-    elif "ROUTE=financeiro" in resposta_roteador:
+    elif "ROUTE=outros" in resposta_roteador:
         resposta = gemini_resp(user_id, session_id).invoke(
             {"input": resposta_roteador},
             config={"configurable": {"session_id": session}},
         )
-
-    if not isinstance(resposta, dict):
-        resposta = json.loads(resposta)
-
-    return resposta.get("output", resposta)
-
+    if resposta:
+        if not isinstance(resposta, dict):
+            resposta = json.loads(resposta)
+        return resposta.get("output", resposta)
+    return {
+            "error": "Não foi possível processar a pergunta no momento. Tente novamente mais tarde."
+        }
 
 def _finalizar_resposta(user_id, session_id, resposta) -> str:
     session = f"{user_id}_{session_id}"
