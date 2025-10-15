@@ -1,5 +1,4 @@
 # Core
-python>=3.10,<3.14
 pip>=25.2
 setuptools>=70.0.0
 wheel>=0.44.0
