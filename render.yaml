@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: chat-bot
+    env: python
+    buildCommand: "pip install -r Chat-Bot/requirements.txt"
+    startCommand: "python Chat-Bot/main.py"
+    pythonVersion: 3.12.3
