@@ -21,9 +21,8 @@ def chat():
         return jsonify({"error": str(err)}), 400
 
     answer: dict = question_for_gemini(
-        validate_data["question"],
-        validate_data["user_id"],
-        validate_data["session_id"])
+        validate_data["question"], validate_data["user_id"], validate_data["session_id"]
+    )
 
     if not answer:
         return jsonify({"error": "Failed to generate answer"}), 500

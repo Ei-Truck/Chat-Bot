@@ -7,8 +7,8 @@ wheel>=0.44.0
 Flask~=3.1.1
 
 # Google Gemini API
-google-generativeai==0.8.5
-langchain-google-genai==2.0.10
+google-genai==1.44.0
+langchain-google-genai==2.1.12
 protobuf>=3.19.5,<5.0.0
 
 # LangChain
@@ -25,7 +25,15 @@ dotenv~=0.9.9
 # Utilities
 marshmallow~=3.26.1
 sentence-transformers>=2.6.1
-transformers==4.39.3
-huggingface_hub==0.20.3
-pymongo~=4.6.1
+transformers==4.46.2
+faiss-cpu>=1.9.0,<2.0.0
+tokenizers==0.20.3
+huggingface-hub>=0.23.2,<1.0
 prompt_toolkit==3.0.38
+
+# MongoDB / SSL
+pymongo>=4.6.1,<5.0.0
+certifi>=2025.9.24
+
+# Timezone data
+tzdata; platform_system == "Windows"

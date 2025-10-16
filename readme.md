@@ -5,8 +5,6 @@ Bem-vindo à documentação do projeto! Aqui você encontra tudo o que precisa p
 
 
 
-#### BRANCH DE DEPLOY IN QA - NÃO MERGEAR NA MAIN
-As funcionalidades novas são mergeadas aqui, para serem deployadas em qa. Logo após testar essas funcionalidades em QA, mergeie A BRANCH DA FUNCIONALIDADE, com a main.
 
 ---
 
@@ -19,9 +17,14 @@ app/
 ├── ai/
 │   ├── text/
 │   │   └── FAQ.txt
+│   │   └── prompt_gemini.txt
+│   │   └── prompt_orquestrador.txt
+│   │   └── prompt_especialista_automobilistica.txt
+│   │   └── prompt_roteador.txt
+│   │   └── prompt_juiz.txt
 │   └── ai_model.py
-│   └── embedding.py
-│   └── histChat.py
+│   └── ai_rag.py.py
+│   └── ai_manager.py
 ├── config/
 │   └── config.py
 ├── routes/

@@ -6,6 +6,8 @@ from langchain_core.prompts import (
     HumanMessagePromptTemplate,
     AIMessagePromptTemplate,
 )
+from zoneinfo import ZoneInfo
+from datetime import datetime
 from langchain_core.prompts import FewShotChatMessagePromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.runnables.history import RunnableWithMessageHistory
@@ -15,21 +17,40 @@ import os
 
 load_dotenv()
 
+TZ = ZoneInfo("America/Sao_Paulo")
+today_local = datetime.now(TZ).date()
+
 # Configura a API key
 chave_api = os.getenv("GEMINI_API_KEY")
 mongo_host = os.getenv("CONNSTRING")
 
 
-# Verificar pergunta
-def verifica_pergunta(pergunta: str) -> str:
-    llm = ChatGoogleGenerativeAI(google_api_key=chave_api, model="gemini-1.5-flash", temperature=0)
-    prompt_avaliacao = (
-        "Você é um assistente que verifica se um texto contém "
-        "linguagem ofensiva, discurso de ódio, calúnia ou difamação. "
-        "Responda 'SIM' se contiver e 'NÃO' caso contrário. Seja estrito na sua avaliação."
+def get_llm_fast() -> ChatGoogleGenerativeAI:
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.0-flash",
+        temperature=0,
+        google_api_key=chave_api,
     )
 
-    resposta_llm = llm.invoke(
+
+def get_llm() -> ChatGoogleGenerativeAI:
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        temperature=0.7,
+        top_p=0.95,
+        google_api_key=chave_api,
+    )
+
+
+# Verificar pergunta
+def verifica_pergunta(pergunta: str) -> str:
+    llm_fast = get_llm_fast()
+    prompt_avaliacao = (
+        "Você é um assistente que verifica se um texto contém linguagem ofensiva, discurso de ódio, "
+        "calúnia ou difamação. Responda 'SIM' se contiver e 'NÃO' caso contrário. "
+        "Seja estrito na sua avaliação."
+    )
+    resposta_llm = llm_fast.invoke(
         [HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)]
     )
     return resposta_llm.content.strip()
@@ -44,170 +65,357 @@ def get_session_history(user_id, session_id) -> MongoDBChatMessageHistory:
     )
 
 
-def gemini_resp(user_id, session_id, question):
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash", temperature=0.7, top_p=0.95, google_api_key=chave_api
-    )
+# Roteador para localizar agente especialista
+def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
+    llm_fast = get_llm_fast()
+    with open("./app/ai/text/prompt_roteador.txt", "r", encoding="utf-8") as f:
+        prompt_roteador_text = f.read()
 
-    system_prompt = (
-        "system",
-        """
-### PERSONA
-Você é o EiTruck.AI — um agente especializado em perguntas e respostas da empresa EiTruck.
-Referência em soluções para transporte, logística e tecnologia embarcada.
-Sua principal característica é a precisão e o foco técnico.
-Você é claro, direto e detalhado, fornecendo informações relevantes de forma objetiva e sem rodeios.
-Seu objetivo é ajudar usuários com dúvidas específicas sobre os produtos, serviços e processos da EiTruck.
-Ofereça a melhor resposta possível de forma concisa.
+    system_prompt_roteador = ("system", prompt_roteador_text)
 
-### TAREFAS
-- Processar perguntas recebidas de usuários sobre os serviços, produtos, tecnologias ou processos da EiTruck.
-- Fornecer respostas precisas, detalhadas e corretas, sem sair do foco da pergunta.
-- Elaborar respostas técnicas de forma clara e compreensível.
-- Adaptar a linguagem técnica conforme o perfil da pergunta (ex: leigo ou especialista).
-- Priorizar a objetividade e evitar explicações excessivamente longas.
-
-### REGRAS
-- Seja direto, técnico e informativo.
-- Resuma a resposta ao máximo, mantendo precisão e clareza.
-- Nunca invente informações; se não souber, solicite mais dados ou informe a limitação.
-- Mantenha o foco estrito na pergunta do usuário.
-- Não desvie do assunto, nem insira informações desnecessárias.
-- Caso a pergunta seja muito ampla ou ambígua, solicite que o usuário refine.
-
-### FORMATO DE RESPOSTA
-- <resposta clara e direta à pergunta feita>
-- *Detalhamento (opcional)*:
-<informação adicional técnica, se necessário>
-- *Solicitação (opcional)*:
-<se faltar contexto ou dados para responder corretamente, pedir informações adicionais>
-
-### HISTÓRICO DA CONVERSA
-{chat_history}
-""",
-    )
-    example_prompt = ChatPromptTemplate.from_messages(
+    prompt_roteador = ChatPromptTemplate.from_messages(
         [
-            HumanMessagePromptTemplate.from_template("{human}"),
+            HumanMessagePromptTemplate.from_template("{input}"),
+            AIMessagePromptTemplate.from_template("{output}"),
+        ]
+    )
+
+    shots_roteador = [
+        {
+            "input": "Oi, tudo bem?",
+            "output": (
+                "Olá! Sou o EiTruck.AI. Posso te ajudar com dúvidas sobre telemetria, frota ou sistemas do EiTruck. "
+                "Sobre qual desses temas você quer falar?"
+            ),
+        },
+        {
+            "input": "Me conta uma piada.",
+            "output": (
+                "Eu só respondo a dúvidas técnicas sobre o EiTruck. "
+                "Quer falar sobre telemetria, monitoramento de frota ou manutenção?"
+            ),
+        },
+        {
+            "input": "Como funciona o bloqueio remoto do veículo?",
+            "output": (
+                "ROUTE=automobilistica\n"
+                "PERGUNTA_ORIGINAL=Como funciona o bloqueio remoto do veículo?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Quero informações sobre telemetria.",
+            "output": (
+                "ROUTE=faq\n"
+                "PERGUNTA_ORIGINAL=Quero informações sobre telemetria.\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "O que é telemetria?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=O que é telemetria?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+    ]
+
+    fewshots_roteador = FewShotChatMessagePromptTemplate(
+        examples=shots_roteador, example_prompt=prompt_roteador
+    )
+
+    prompt_roteador = ChatPromptTemplate.from_messages(
+        [
+            system_prompt_roteador,
+            fewshots_roteador,
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
+        ]
+    )
+
+    prompt_roteador = prompt_roteador.partial(today_local=today_local.isoformat())
+    chain_roteador = prompt_roteador | llm_fast | StrOutputParser()
+
+    chain_roteador = RunnableWithMessageHistory(
+        chain_roteador,
+        get_session_history=lambda _: get_session_history(user_id, session_id),
+        input_messages_key="input",
+        history_messages_key="chat_history",
+    )
+    return chain_roteador
+
+
+# Especialista em automobilística
+def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
+    llm = get_llm()
+    with open(
+        "./app/ai/text/prompt_especialista_automobilistica.txt", "r", encoding="utf-8"
+    ) as f:
+        prompt_especialista_text = f.read()
+
+    system_prompt_especialista = ("system", prompt_especialista_text)
+
+    prompt_especialista = ChatPromptTemplate.from_messages(
+        [
+            HumanMessagePromptTemplate.from_template("{input}"),
+            AIMessagePromptTemplate.from_template("{output}"),
+        ]
+    )
+
+    shots_especialista = [
+        {
+            "input": (
+                "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual é a principal função da telemetria?\n"
+                "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
+            ),
+            "output": (
+                """{
+                    "dominio": "automobilistica",
+                    "resposta": "A telemetria é utilizada em diversas áreas, incluindo: "
+                        "- Veículos (monitoramento de frota) "
+                        "- Medicina (monitoramento de pacientes) "
+                        "- Indústria (manutenção preditiva) "
+                        "- Energia (monitoramento de redes elétricas) "
+                        "- Agricultura (sensores em plantações) "
+                        "- Esportes (dados de desempenho de atletas) "
+                        "- Aviação (sistemas de voo e caixa preta) "
+                        "- Defesa (monitoramento de drones e equipamentos remotos) "
+                        "- Meteorologia (sensores climáticos remotos) "
+                        "- Smart Cities (monitoramento de trânsito, iluminação e resíduos)"
+            """
+            ),
+        }
+    ]
+
+    fewshots_especialista = FewShotChatMessagePromptTemplate(
+        examples=shots_especialista, example_prompt=prompt_especialista
+    )
+
+    prompt_especialista = ChatPromptTemplate.from_messages(
+        [
+            system_prompt_especialista,
+            fewshots_especialista,
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
+        ]
+    )
+
+    prompt_especialista = prompt_especialista.partial(
+        today_local=today_local.isoformat()
+    )
+    chain_auto = prompt_especialista | llm | StrOutputParser()
+
+    chain_auto = RunnableWithMessageHistory(
+        chain_auto,
+        get_session_history=lambda _: get_session_history(user_id, session_id),
+        input_messages_key="input",
+        history_messages_key="chat_history",
+    )
+    return chain_auto
+
+
+# Juiz de respostas
+def juiz_resposta(user_id: int, session_id: int) -> RunnableWithMessageHistory:
+    juiz = get_llm()
+
+    with open("./app/ai/text/prompt_juiz.txt", "r", encoding="utf-8") as f:
+        prompt_juiz_text = f.read()
+
+    system_prompt = ("system", prompt_juiz_text)
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            system_prompt,
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
+        ]
+    )
+
+    base_chain = prompt | juiz | StrOutputParser()
+
+    chain_juiz = RunnableWithMessageHistory(
+        base_chain,
+        get_session_history=lambda _: get_session_history(user_id, session_id),
+        input_messages_key="input",
+        history_messages_key="chat_history",
+    )
+    return chain_juiz
+
+
+# Especialista em perguntas gerais
+def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
+    llm = get_llm()
+    with open("./app/ai/text/prompt_gemini.txt", "r", encoding="utf-8") as f:
+        prompt_gemini_text = f.read()
+    system_prompt = ("system", prompt_gemini_text)
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            HumanMessagePromptTemplate.from_template("{input}"),
             AIMessagePromptTemplate.from_template("{ai}"),
         ]
     )
-    shots = []
-    fewshots = FewShotChatMessagePromptTemplate(examples=shots, example_prompt=example_prompt)
+    shots = [
+        {
+            "input": "O que é telemetria?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=O que é telemetria?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Como o EiTruck coleta os dados dos veículos?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Como o EiTruck coleta os dados dos veículos?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Quais são os principais serviços oferecidos pela EiTruck?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Quais são os principais serviços oferecidos pela EiTruck?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "O sistema do EiTruck precisa de internet para funcionar?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=O sistema do EiTruck precisa de internet para funcionar?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Como posso acessar os relatórios de telemetria?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Como posso acessar os relatórios de telemetria?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "O que diferencia o EiTruck de outros sistemas de gestão de frota?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=O que diferencia o EiTruck de outros sistemas de gestão de frota?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Posso integrar o EiTruck com outros sistemas da empresa?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Posso integrar o EiTruck com outros sistemas da empresa?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Os dados de telemetria são armazenados por quanto tempo?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Os dados de telemetria são armazenados por quanto tempo?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Como funciona o suporte técnico do EiTruck?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Como funciona o suporte técnico do EiTruck?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "O que é análise de comportamento do motorista?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=O que é análise de comportamento do motorista?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+    ]
+    fewshots = FewShotChatMessagePromptTemplate(examples=shots, example_prompt=prompt)
     prompt = ChatPromptTemplate.from_messages(
         [
             system_prompt,
             fewshots,
             MessagesPlaceholder("chat_history"),
-            ("human", "{usuario}"),
+            ("human", "{input}"),
         ]
     )
     base_chain = prompt | llm | StrOutputParser()
-    chain = RunnableWithMessageHistory(
+    chain_gemini = RunnableWithMessageHistory(
         base_chain,
         get_session_history=lambda _: get_session_history(user_id, session_id),
-        input_messages_key="usuario",
+        input_messages_key="input",
         history_messages_key="chat_history",
     )
-    if question.lower() in ("sair", "end", "fim", "tchau", "bye"):
-        return "Encerrando o chat."
-    try:
-        resposta = chain.invoke(
-            {"usuario": question}, config={"configurable": {"session_id": session_id}}
-        )
-        return resposta
-    except Exception as e:
-        return f"Não foi possível responder: {e}"
+    return chain_gemini
 
 
-# Verificar Resposta
-def juiz_resposta(pergunta: str, resposta: str) -> str:
-    juiz = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash", temperature=0.5, google_api_key=chave_api
+# Agente Orquestrador
+def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHistory:
+    llm = get_llm()
+
+    with open("./app/ai/text/prompt_orquestrador.txt", "r", encoding="utf-8") as f:
+        system_orquestrador_prompt = f.read()
+
+    system_orquestrador_prompt = ("system", system_orquestrador_prompt)
+
+    shots_orquestrador = [
+        {
+            "input": (
+                "ESPECIALISTA_JSON:{{'dominio':'automobilistica','resposta':'Você gastou R$ 842,75 com comida',"
+                "'recomendacao':'Quer detalhar por estabelecimento?'}}"
+            ),
+            "output": (
+                "Você gastou R$ 842,75 com comida.\n*Recomendação*:\nQuer detalhar por estabelecimento?"
+            ),
+        }
+    ]
+
+    example_prompt_orquestrador = ChatPromptTemplate.from_messages(
+        [
+            HumanMessagePromptTemplate.from_template("{input}"),
+            AIMessagePromptTemplate.from_template("{output}"),
+        ]
     )
 
-    prompt_juiz = """
-Você é um avaliador imparcial. Sua única tarefa é revisar a resposta de um tutor de IA.
-
-### OBJETIVO
-Avaliar se a resposta do tutor atende corretamente à pergunta do usuário.
-
-### CRITÉRIOS DE AVALIAÇÃO
-- A resposta está tecnicamente correta?
-- Está clara para alguém com nível técnico médio?
-- O próximo passo sugerido está bem formulado?
-
-### QUANDO NÃO TIVER CERTEZA
-- Busque internamente a melhor resposta possível para a pergunta proposta.
-- Reavalie a resposta antes de emitir seu julgamento.
-- Não repita avaliações anteriores.
-
-### AÇÃO QUANDO A RESPOSTA FOR BOA
-- Defina o campo "status" como "Aprovado".
-- Explique no campo "judgmentAnswer" por que a resposta é boa.
-
-### AÇÃO QUANDO A RESPOSTA TIVER PROBLEMAS
-- Defina o campo "status" como "Reprovado".
-- No campo "judgmentAnswer" proponha uma versão melhorada da resposta.
-
-### CASOS RELACIONADOS AO HISTÓRICO
-- Se a pergunta ou resposta for apenas sobre histórico ou recuperação de histórico, não altere nada.
-- Retorne o mesmo conteúdo da resposta original.
-- Defina o campo "status" como "Aprovado".
-
-### FORMATO DE SAÍDA (OBRIGATÓRIO)
-Você **deve** retornar **exclusivamente** um objeto JSON válido, sem texto extra, com a seguinte estrutura exata:
-
-{
-    "status": "Aprovado" ou "Reprovado",
-    "question": "<pergunta recebida>",
-    "answer": "<resposta original do tutor antes da correção>",
-    "judgmentAnswer": "<versão melhorada obrigatóriamente>"
-}
-
-Não adicione comentários, explicações, markdown ou qualquer outro conteúdo fora do JSON.
-Retorne **somente** este JSON.
-
-## VOCÊ NÃO DEVE ALTERAR NADA NA RESPOSTA
-## CASO A RESPOSTA ESTEJA INCLUSA NO CONTEXTO EITRUCK APENAS O APROVE
-### CONTEXTO EI TRUCK:
-#### O EiTruck é uma iniciativa desenvolvida por estudantes do ensino médio.
-# Surgiu a partir da necessidade de aprimorar a eficiência no gerenciamento de equipes de manutenção no setor de transporte.
-# O projeto tem como propósito central oferecer soluções inovadoras.
-# Que possibilitem maior organização operacional de atividades e suporte na tomada de decisões estratégicas.
-# Um dos principais diferenciais da proposta é a integração com sistemas de telemetria veicular.
-# Que permite o monitoramento em tempo real por meio de câmeras e sensores embarcados.
-# Esses recursos tecnológicos geram alertas automáticos diante de situações críticas.
-# Como falhas técnicas ou incidentes operacionais.
-# Dessa forma, a plataforma do EiTruck atua como um intermediário eficaz na comunicação entre os gestores e as equipes de campo
-# Facilitando a análise de dados, a identificação de problemas e a adoção de medidas corretivas imediatas.
-# Ao unir tecnologia e gestão, o EiTruck busca não apenas reduzir o tempo de resposta a ocorrências.
-# Mas também promover maior segurança, confiabilidade e transparência nos processos de manutenção.
-
-
-### Os integrantes do EiTruck são:
-- Ana Clara Costa
-- Beatriz Dias
-- Bruno Urias
-- Daniel Severo
-- Giovanna Quirino
-- Igor Quinto
-- Isabela Neu
-- João Camargo
-- Marcelo Paschoareli
-- Matheus Bastos
-- Miguel Araujo
-- Samuel Pimenta
-- Verena Marostica
-
-        """
-
-    resposta_juiz = juiz(
-        [HumanMessage(content=prompt_juiz + "\n\nPergunta:" + pergunta + "\nResposta:" + resposta)]
+    fewshots_orquestrador = FewShotChatMessagePromptTemplate(
+        examples=shots_orquestrador, example_prompt=example_prompt_orquestrador
     )
 
-    resposta_juiz = resposta_juiz.content.strip()
-    if resposta_juiz.startswith("```json"):
-        resposta_juiz = resposta_juiz[len("```json"):].rstrip("```").strip()
+    prompt_orquestrador = ChatPromptTemplate.from_messages(
+        [
+            system_orquestrador_prompt,
+            fewshots_orquestrador,
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
+        ]
+    )
 
-    return resposta_juiz
+    base_chain = prompt_orquestrador | llm | StrOutputParser()
+
+    chain_orquestrador = RunnableWithMessageHistory(
+        base_chain,
+        get_session_history=lambda _: get_session_history(user_id, session_id),
+        input_messages_key="input",
+        history_messages_key="chat_history",
+    )
+    return chain_orquestrador
