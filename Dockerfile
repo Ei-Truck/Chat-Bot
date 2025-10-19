@@ -1,5 +1,5 @@
 # Imagem base Python
-FROM python:3.0-slim
+FROM python:3.9-slim
 
 # Instala o Nginx
 RUN apt-get update && apt-get install -y nginx curl && rm -rf /var/lib/apt/lists/*
