@@ -16,7 +16,7 @@ RUN rm /etc/nginx/sites-enabled/default
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expõe a porta 80
-EXPOSE 80
+EXPOSE 5000
 
 # Script para rodar API + Nginx
 CMD ["bash", "-c", "python main.py & nginx -g 'daemon off;'"]
