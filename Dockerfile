@@ -9,7 +9,7 @@ WORKDIR /app
 COPY . /app
 
 # Instala dependências Python
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Configura Nginx
 RUN rm /etc/nginx/sites-enabled/default
