@@ -27,11 +27,11 @@
 ### CONTRATO DE SAÍDA (JSON)
 Campos mínimos obrigatórios:  
 ```json
-{
+{{
   "dominio": "geral",
   "resposta": "frase objetiva",
   "recomendacao": "ação prática ou vazio"
-}
+}}
 
 ### HISTÓRICO DA CONVERSA
 {chat_history}
