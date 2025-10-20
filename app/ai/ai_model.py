@@ -6,6 +6,7 @@ from langchain_core.prompts import (
     HumanMessagePromptTemplate,
     AIMessagePromptTemplate,
 )
+from app.ai.ai_rag import get_faq_context
 from zoneinfo import ZoneInfo
 from datetime import datetime
 from langchain_core.prompts import FewShotChatMessagePromptTemplate
@@ -14,6 +15,8 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.output_parsers import StrOutputParser
 from langchain_mongodb.chat_message_histories import MongoDBChatMessageHistory
 import os
+from operator import itemgetter
+from langchain_core.runnables import RunnablePassthrough
 
 load_dotenv()
 
@@ -255,7 +258,7 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
     prompt = ChatPromptTemplate.from_messages(
         [
             HumanMessagePromptTemplate.from_template("{input}"),
-            AIMessagePromptTemplate.from_template("{ai}"),
+            AIMessagePromptTemplate.from_template("{output}"),
         ]
     )
     shots = [
@@ -419,3 +422,38 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
         history_messages_key="chat_history",
     )
     return chain_orquestrador
+
+
+def especialista_faq() -> RunnablePassthrough:
+
+    llm_fast = get_llm_fast()
+
+    with open("./app/ai/text/prompt_faq.txt", "r", encoding="utf-8") as f:
+        prompt_faq_text = f.read()
+
+    system_prompt_faq = ("system", prompt_faq_text)
+
+    prompt_faq = ChatPromptTemplate.from_messages(
+        [
+            system_prompt_faq,
+            (
+                "human",
+                "Pergunta do usuário:\n{question}\n\n"
+                "CONTEXTO (trechos do documento):\n{context}\n\n"
+                "Responda com base APENAS no CONTEXTO.",
+            ),
+        ]
+    )
+    faq_chain_core = (
+        RunnablePassthrough.assign(
+            question=itemgetter("input"),
+            context=lambda x: get_faq_context(
+                x["input"] if isinstance(x, dict) else x.page_content
+            ),
+        )
+        | prompt_faq
+        | llm_fast
+        | StrOutputParser()
+    )
+
+    return faq_chain_core
