@@ -42,7 +42,7 @@ def get_faq_context(question, txt_path="./app/ai/text/FAQ.txt") -> str:
     docs = loader.load()
 
     # Divide em chunks
-    splitter = RecursiveCharacterTextSplitter(chunk_size=700, chunk_overlap=150)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
     chunks = splitter.split_documents(docs)
 
     # Usa o wrapper compatível
