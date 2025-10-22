@@ -43,7 +43,7 @@ def get_faq_context(question, txt_path="./app/ai/text/FAQ.txt") -> str:
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
     chunks = splitter.split_documents(docs)
 
-    # Usa o wrapper compatível
+    # Usa o divisor compatível
     embedding_function = get_model()
 
     # Cria o banco vetorial FAISS
