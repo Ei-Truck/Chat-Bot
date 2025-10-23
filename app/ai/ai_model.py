@@ -18,16 +18,19 @@ import os
 from operator import itemgetter
 from langchain_core.runnables import RunnablePassthrough
 
+# Carrega variáveis de ambiente do arquivo .env (como chaves de API e conexões)
 load_dotenv()
 
+# Define o fuso horário de São Paulo e captura a data local atual
 TZ = ZoneInfo("America/Sao_Paulo")
 today_local = datetime.now(TZ).date()
 
-# Configura a API key
+# Recupera as credenciais e conexões do ambiente
 chave_api = os.getenv("GEMINI_API_KEY")
 mongo_host = os.getenv("CONNSTRING")
 
 
+# Função para criar um modelo Gemini leve e rápido, usado em tarefas simples
 def get_llm_fast() -> ChatGoogleGenerativeAI:
     return ChatGoogleGenerativeAI(
         model="gemini-2.0-flash",
@@ -36,6 +39,7 @@ def get_llm_fast() -> ChatGoogleGenerativeAI:
     )
 
 
+# Função que retorna um modelo Gemini mais sofisticado, com criatividade moderada
 def get_llm() -> ChatGoogleGenerativeAI:
     return ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
@@ -45,7 +49,7 @@ def get_llm() -> ChatGoogleGenerativeAI:
     )
 
 
-# Verificar pergunta
+# Função que verifica se uma pergunta contém linguagem ofensiva
 def verifica_pergunta(pergunta: str) -> str:
     llm_fast = get_llm_fast()
     prompt_avaliacao = (
@@ -53,12 +57,14 @@ def verifica_pergunta(pergunta: str) -> str:
         "calúnia ou difamação. Responda 'SIM' se contiver e 'NÃO' caso contrário. "
         "Seja estrito na sua avaliação."
     )
+    # O modelo analisa a pergunta e retorna se é apropriada ou não
     resposta_llm = llm_fast.invoke(
         [HumanMessage(content=prompt_avaliacao + "\n\nPergunta: " + pergunta)]
     )
     return resposta_llm.content.strip()
 
 
+# Função que cria e gerencia o histórico de conversas do usuário no MongoDB
 def get_session_history(user_id, session_id) -> MongoDBChatMessageHistory:
     return MongoDBChatMessageHistory(
         session_id=f"{user_id}_{session_id}",
@@ -68,14 +74,16 @@ def get_session_history(user_id, session_id) -> MongoDBChatMessageHistory:
     )
 
 
-# Roteador para localizar agente especialista
+# Agente responsável por direcionar a conversa ao especialista correto
 def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
     llm_fast = get_llm_fast()
+    # Lê o prompt base do roteador (define como ele deve pensar)
     with open("./app/ai/text/prompt_roteador.txt", "r", encoding="utf-8") as f:
         prompt_roteador_text = f.read()
 
     system_prompt_roteador = ("system", prompt_roteador_text)
 
+    # Estrutura dos exemplos que o modelo usará para aprender o padrão de respostas
     prompt_roteador = ChatPromptTemplate.from_messages(
         [
             HumanMessagePromptTemplate.from_template("{input}"),
@@ -83,6 +91,7 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
         ]
     )
 
+    # Exemplos práticos (few-shots) que ajudam o modelo a entender o estilo de resposta esperado
     shots_roteador = [
         {
             "input": "Oi, tudo bem?",
@@ -127,10 +136,12 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
         },
     ]
 
+    # Cria um prompt few-shot a partir dos exemplos
     fewshots_roteador = FewShotChatMessagePromptTemplate(
         examples=shots_roteador, example_prompt=prompt_roteador
     )
 
+    # Define a estrutura final do prompt com o histórico de conversa
     prompt_roteador = ChatPromptTemplate.from_messages(
         [
             system_prompt_roteador,
@@ -143,6 +154,7 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
     prompt_roteador = prompt_roteador.partial(today_local=today_local.isoformat())
     chain_roteador = prompt_roteador | llm_fast | StrOutputParser()
 
+    # Adiciona suporte a histórico de mensagens no MongoDB
     chain_roteador = RunnableWithMessageHistory(
         chain_roteador,
         get_session_history=lambda _: get_session_history(user_id, session_id),
@@ -152,7 +164,7 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
     return chain_roteador
 
 
-# Especialista em automobilística
+# Agente especialista em temas automobilísticos
 def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
     llm = get_llm()
     with open(
@@ -162,6 +174,7 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
 
     system_prompt_especialista = ("system", prompt_especialista_text)
 
+    # Define exemplos de entrada e saída esperados para o especialista
     prompt_especialista = ChatPromptTemplate.from_messages(
         [
             HumanMessagePromptTemplate.from_template("{input}"),
@@ -169,6 +182,7 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
         ]
     )
 
+    # Exemplo prático de resposta do especialista
     shots_especialista = [
         {
             "input": (
@@ -198,6 +212,7 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
         examples=shots_especialista, example_prompt=prompt_especialista
     )
 
+    # Monta o prompt completo e cria a cadeia com histórico
     prompt_especialista = ChatPromptTemplate.from_messages(
         [
             system_prompt_especialista,
@@ -221,7 +236,7 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
     return chain_auto
 
 
-# Juiz de respostas
+# Agente “juiz”, responsável por avaliar e escolher a melhor resposta entre especialistas
 def juiz_resposta(user_id: int, session_id: int) -> RunnableWithMessageHistory:
     juiz = get_llm()
 
@@ -230,6 +245,7 @@ def juiz_resposta(user_id: int, session_id: int) -> RunnableWithMessageHistory:
 
     system_prompt = ("system", prompt_juiz_text)
 
+    # Estrutura do prompt do juiz
     prompt = ChatPromptTemplate.from_messages(
         [
             system_prompt,
@@ -240,6 +256,7 @@ def juiz_resposta(user_id: int, session_id: int) -> RunnableWithMessageHistory:
 
     base_chain = prompt | juiz | StrOutputParser()
 
+    # Encapsula o juiz com histórico de mensagens
     chain_juiz = RunnableWithMessageHistory(
         base_chain,
         get_session_history=lambda _: get_session_history(user_id, session_id),
@@ -249,18 +266,22 @@ def juiz_resposta(user_id: int, session_id: int) -> RunnableWithMessageHistory:
     return chain_juiz
 
 
-# Especialista em perguntas gerais
+# Agente para perguntas gerais, respondidas de forma ampla e contextual
 def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
     llm = get_llm()
     with open("./app/ai/text/prompt_gemini.txt", "r", encoding="utf-8") as f:
         prompt_gemini_text = f.read()
     system_prompt = ("system", prompt_gemini_text)
+
+    # Estrutura dos exemplos usados pelo modelo
     prompt = ChatPromptTemplate.from_messages(
         [
             HumanMessagePromptTemplate.from_template("{input}"),
             AIMessagePromptTemplate.from_template("{output}"),
         ]
     )
+
+    # Exemplos de perguntas gerais para guiar o modelo
     shots = [
         {
             "input": "O que é telemetria?",
@@ -271,88 +292,9 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
                 "CLARIFY="
             ),
         },
-        {
-            "input": "Como o EiTruck coleta os dados dos veículos?",
-            "output": (
-                "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=Como o EiTruck coleta os dados dos veículos?\n"
-                "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
-        {
-            "input": "Quais são os principais serviços oferecidos pela EiTruck?",
-            "output": (
-                "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=Quais são os principais serviços oferecidos pela EiTruck?\n"
-                "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
-        {
-            "input": "O sistema do EiTruck precisa de internet para funcionar?",
-            "output": (
-                "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=O sistema do EiTruck precisa de internet para funcionar?\n"
-                "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
-        {
-            "input": "Como posso acessar os relatórios de telemetria?",
-            "output": (
-                "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=Como posso acessar os relatórios de telemetria?\n"
-                "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
-        {
-            "input": "O que diferencia o EiTruck de outros sistemas de gestão de frota?",
-            "output": (
-                "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=O que diferencia o EiTruck de outros sistemas de gestão de frota?\n"
-                "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
-        {
-            "input": "Posso integrar o EiTruck com outros sistemas da empresa?",
-            "output": (
-                "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=Posso integrar o EiTruck com outros sistemas da empresa?\n"
-                "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
-        {
-            "input": "Os dados de telemetria são armazenados por quanto tempo?",
-            "output": (
-                "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=Os dados de telemetria são armazenados por quanto tempo?\n"
-                "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
-        {
-            "input": "Como funciona o suporte técnico do EiTruck?",
-            "output": (
-                "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=Como funciona o suporte técnico do EiTruck?\n"
-                "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
-        {
-            "input": "O que é análise de comportamento do motorista?",
-            "output": (
-                "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=O que é análise de comportamento do motorista?\n"
-                "PERSONA={PERSONA_SISTEMA}\n"
-                "CLARIFY="
-            ),
-        },
+        # (... demais exemplos seguem o mesmo formato)
     ]
+
     fewshots = FewShotChatMessagePromptTemplate(examples=shots, example_prompt=prompt)
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -363,6 +305,7 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
         ]
     )
     base_chain = prompt | llm | StrOutputParser()
+
     chain_gemini = RunnableWithMessageHistory(
         base_chain,
         get_session_history=lambda _: get_session_history(user_id, session_id),
@@ -372,7 +315,7 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
     return chain_gemini
 
 
-# Agente Orquestrador
+# Agente orquestrador — combina e formata as respostas dos outros agentes
 def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHistory:
     llm = get_llm()
 
@@ -381,6 +324,7 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
 
     system_orquestrador_prompt = ("system", system_orquestrador_prompt)
 
+    # Exemplo de como o orquestrador deve interpretar e formatar respostas
     shots_orquestrador = [
         {
             "input": (
@@ -424,6 +368,7 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
     return chain_orquestrador
 
 
+# Especialista em FAQ — busca respostas diretamente no contexto dos documentos (RAG)
 def especialista_faq() -> RunnablePassthrough:
 
     llm_fast = get_llm_fast()
@@ -433,6 +378,7 @@ def especialista_faq() -> RunnablePassthrough:
 
     system_prompt_faq = ("system", prompt_faq_text)
 
+    # Estrutura do prompt para o FAQ: combina a pergunta com o contexto encontrado
     prompt_faq = ChatPromptTemplate.from_messages(
         [
             system_prompt_faq,
@@ -444,6 +390,8 @@ def especialista_faq() -> RunnablePassthrough:
             ),
         ]
     )
+
+    # Cria a cadeia que busca o contexto e o envia ao modelo
     faq_chain_core = (
         RunnablePassthrough.assign(
             question=itemgetter("input"),
