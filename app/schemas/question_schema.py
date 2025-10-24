@@ -17,9 +17,9 @@ class AskSchema(Schema):
     user_id = fields.Int(
         required=True,
         error_messages={
-            "required": "field 'user_id' is required.", # Mensagem se não enviado
-            "null": "field 'user_id' cannot be null.", # Mensagem se for nulo
-            "invalid": "field 'user_id' must be a integer.", # Mensagem se não for int
+            "required": "field 'user_id' is required.",  # Mensagem se não enviado
+            "null": "field 'user_id' cannot be null.",  # Mensagem se for nulo
+            "invalid": "field 'user_id' must be a integer.",  # Mensagem se não for int
         },
     )
 
@@ -27,8 +27,8 @@ class AskSchema(Schema):
     session_id = fields.Int(
         required=True,
         error_messages={
-            "required": "field 'session_id' is required.", # Mensagem se não enviado
-            "null": "field 'session_id' cannot be null.", # Mensagem se for nulo
-            "invalid": "field 'session_id' must be a integer.", # Mensagem se não for int
+            "required": "field 'session_id' is required.",  # Mensagem se não enviado
+            "null": "field 'session_id' cannot be null.",  # Mensagem se for nulo
+            "invalid": "field 'session_id' must be a integer.",  # Mensagem se não for int
         },
     )

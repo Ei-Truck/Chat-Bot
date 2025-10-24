@@ -30,7 +30,7 @@ chave_api = os.getenv("GEMINI_API_KEY")
 mongo_host = os.getenv("CONNSTRING")
 
 
-# Função para criar um modelo Gemini leve e rápido, usado em tarefas simples
+# Função para criar um modelo Gemini leve e rápido
 def get_llm_fast() -> ChatGoogleGenerativeAI:
     return ChatGoogleGenerativeAI(
         model="gemini-2.0-flash",
@@ -39,7 +39,7 @@ def get_llm_fast() -> ChatGoogleGenerativeAI:
     )
 
 
-# Função que retorna um modelo Gemini mais sofisticado, com criatividade moderada
+# Função que retorna um modelo Gemini mais sofisticado
 def get_llm() -> ChatGoogleGenerativeAI:
     return ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
@@ -287,12 +287,56 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
             "input": "O que é telemetria?",
             "output": (
                 "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=O que é telemetria?\n"
+                "PERGUNTA_ORIGINAL=Qual é a importância da metalurgia na indústria moderna automobilistica?\n"
                 "PERSONA={PERSONA_SISTEMA}\n"
                 "CLARIFY="
             ),
         },
-        # (... demais exemplos seguem o mesmo formato)
+        {
+            "input": "Como funciona um sistema de gestão de frotas?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Explique de forma resumida o funcionamento de um sistema de gestão de frotas com telemetria.\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "O que o aplicativo de gestão de frotas faz?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Quais são as principais funcionalidades de um aplicativo de gestão de frotas com telemetria?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "O que faz a engenharia automotiva?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Descreva o papel da engenharia automotiva no desenvolvimento de veículos.\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Como reduzir custos na frota?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Quais estratégias ajudam a reduzir custos operacionais na gestão de frotas?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Posso exportar relatórios no app?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=O aplicativo permite exportar relatórios de desempenho em PDF ou Excel?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
     ]
 
     fewshots = FewShotChatMessagePromptTemplate(examples=shots, example_prompt=prompt)
@@ -328,13 +372,58 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
     shots_orquestrador = [
         {
             "input": (
-                "ESPECIALISTA_JSON:{{'dominio':'automobilistica','resposta':'Você gastou R$ 842,75 com comida',"
-                "'recomendacao':'Quer detalhar por estabelecimento?'}}"
+                "ESPECIALISTA_JSON:{{'dominio':'automobilistica','resposta':'Fale sobre engenharia automotiva'}}"
             ),
             "output": (
-                "Você gastou R$ 842,75 com comida.\n*Recomendação*:\nQuer detalhar por estabelecimento?"
+                "A engenharia automotiva envolve o design, o desenvolvimento e a produção de veículos.\n"
+                "*Recomendação*:\nQuer que eu detalhe os principais subsistemas, como motor e suspensão?"
             ),
-        }
+        },
+        {
+            "input": (
+                "ESPECIALISTA_JSON:{{'dominio':'automobilistica','resposta':'O que é telemetria veicular?'}}"
+            ),
+            "output": (
+                "Telemetria veicular é o monitoramento remoto de dados do veículo, como velocidade, consumo e localização.\n"
+                "*Recomendação*:\nQuer que eu mostre aplicações práticas em frotas inteligentes?"
+            ),
+        },
+        {
+            "input": (
+                "ESPECIALISTA_JSON:{{'dominio':'outros','resposta':'Como funciona um sistema de gestão de frotas?'}}"
+            ),
+            "output": (
+                "Um sistema de gestão de frotas coleta dados de veículos e motoristas para otimizar rotas, consumo e manutenção.\n"
+                "*Recomendação*:\nQuer ver exemplos de indicadores usados nesses sistemas?"
+            ),
+        },
+        {
+            "input": (
+                "ESPECIALISTA_JSON:{{'dominio':'outros','resposta':'Como reduzir custos operacionais da frota?'}}"
+            ),
+            "output": (
+                "Custos podem ser reduzidos com manutenção preventiva, controle de abastecimento e análise de telemetria.\n"
+                "*Recomendação*:\nQuer que eu gere um plano estratégico de economia baseado em dados?"
+            ),
+        },
+        {
+            "input": (
+                "ESPECIALISTA_JSON:{{'dominio':'FAQ','resposta':'O que o aplicativo de gestão de frotas faz?'}}"
+            ),
+            "output": (
+                "O aplicativo permite acompanhar veículos em tempo real, controlar consumo e receber alertas automáticos.\n"
+                "*Recomendação*:\nQuer que eu detalhe os módulos principais do app?"
+            ),
+        },
+        {
+            "input": (
+                "ESPECIALISTA_JSON:{{'dominio':'FAQ','resposta':'Posso exportar relatórios?'}}"
+            ),
+            "output": (
+                "Sim, é possível exportar relatórios em PDF, Excel ou CSV com dados de desempenho da frota.\n"
+                "*Recomendação*:\nQuer que eu mostre um exemplo de relatório exportado?"
+            ),
+        },
     ]
 
     example_prompt_orquestrador = ChatPromptTemplate.from_messages(
