@@ -296,7 +296,7 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
             "input": "Como funciona um sistema de gestão de frotas?",
             "output": (
                 "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=Explique de forma resumida o funcionamento de um sistema de gestão de frotas com telemetria.\n"
+                "PERGUNTA_ORIGINAL=Explique de forma resumida o funcionamento de um sistema de gestão de frotas com telemetria"
                 "PERSONA={PERSONA_SISTEMA}\n"
                 "CLARIFY="
             ),
@@ -305,7 +305,7 @@ def gemini_resp(user_id, session_id) -> RunnableWithMessageHistory:
             "input": "O que o aplicativo de gestão de frotas faz?",
             "output": (
                 "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=Quais são as principais funcionalidades de um aplicativo de gestão de frotas com telemetria?\n"
+                "PERGUNTA_ORIGINAL=Quais são as principais funcionalidades de um aplicativo de gestão de frotas com telemetria"
                 "PERSONA={PERSONA_SISTEMA}\n"
                 "CLARIFY="
             ),
@@ -393,7 +393,7 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
                 "ESPECIALISTA_JSON:{{'dominio':'outros','resposta':'Como funciona um sistema de gestão de frotas?'}}"
             ),
             "output": (
-                "Um sistema de gestão de frotas coleta dados de veículos e motoristas para otimizar rotas, consumo e manutenção.\n"
+                "Um sistema de gestão de frotas coleta dados de veículos e motoristas para otimizar rotas, consumo e manutenção"
                 "*Recomendação*:\nQuer ver exemplos de indicadores usados nesses sistemas?"
             ),
         },
