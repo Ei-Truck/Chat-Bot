@@ -393,7 +393,7 @@ def orquestrador_resp(user_id: int, session_id: int) -> RunnableWithMessageHisto
                 "ESPECIALISTA_JSON:{{'dominio':'outros','resposta':'Como funciona um sistema de gestão de frotas?'}}"
             ),
             "output": (
-                "Um sistema de gestão de frotas coleta dados de veículos e motoristas para otimizar rotas,consumo e manutenção"
+                "Um sistema de gestão de frotas coleta dados de veículos para otimizar rotas, consumo e manutenção"
                 "*Recomendação*:\nQuer ver exemplos de indicadores usados nesses sistemas?"
             ),
         },
