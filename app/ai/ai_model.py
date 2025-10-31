@@ -195,28 +195,26 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
     shots_especialista = shots_especialista = [
         {
             "input": (
-                "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=O que é torque e como ele influencia o desempenho do veículo?\n"
+                "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=O que é torque?\n"
                 "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
             ),
             "output": (
                 """{
                 "dominio": "automobilistica",
-                "resposta": "Torque é a força de rotação gerada pelo motor. 
-                Ele influencia a capacidade de aceleração e força para mover o veículo."
+                "resposta": "Torque é a força de rotação gerada pelo motor."
             }"""
             ),
         },
         {
             "input": (
-                "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual a diferença entre motor aspirado e turbo?\n"
+                "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Como funciona um motor aspirado?\n"
                 "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
             ),
             "output": (
                 """{
                 "dominio": "automobilistica",
-                "resposta": "O motor aspirado usa apenas a pressão atmosférica para admissão de ar. 
-                O turbo comprime o ar antes da combustão, aumentando potência e eficiência."
-            }"""
+                "resposta": "O motor aspirado usa apenas a pressão atmosférica para admissão de ar."
+                }"""
             ),
         },
     ]
