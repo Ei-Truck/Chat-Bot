@@ -202,7 +202,7 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
                 """{
                 "dominio": "automobilistica",
                 "resposta": "Torque é a força de rotação gerada pelo motor. 
-                Ele influencia a capacidade de aceleração e força para mover o veículo, especialmente em subidas ou cargas pesadas."
+                Ele influencia a capacidade de aceleração e força para mover o veículo."
             }"""
             ),
         },
@@ -214,7 +214,8 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
             "output": (
                 """{
                 "dominio": "automobilistica",
-                "resposta": "O motor aspirado usa apenas a pressão atmosférica para admissão de ar. O turbo comprime o ar antes da combustão, aumentando potência e eficiência."
+                "resposta": "O motor aspirado usa apenas a pressão atmosférica para admissão de ar. 
+                O turbo comprime o ar antes da combustão, aumentando potência e eficiência."
             }"""
             ),
         },
