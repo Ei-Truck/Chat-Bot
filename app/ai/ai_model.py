@@ -193,33 +193,32 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
 
     # Exemplo prático de resposta do especialista
     shots_especialista = shots_especialista = [
-    {
-        "input": (
-            "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=O que é torque e como ele influencia o desempenho do veículo?\n"
-            "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
-        ),
-        "output": (
-            """{
+        {
+            "input": (
+                "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=O que é torque e como ele influencia o desempenho do veículo?\n"
+                "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
+            ),
+            "output": (
+                """{
                 "dominio": "automobilistica",
                 "resposta": "Torque é a força de rotação gerada pelo motor. 
                 Ele influencia a capacidade de aceleração e força para mover o veículo, especialmente em subidas ou cargas pesadas."
             }"""
-        ),
-    },
-    {
-        "input": (
-            "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual a diferença entre motor aspirado e turbo?\n"
-            "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
-        ),
-        "output": (
-            """{
+            ),
+        },
+        {
+            "input": (
+                "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual a diferença entre motor aspirado e turbo?\n"
+                "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
+            ),
+            "output": (
+                """{
                 "dominio": "automobilistica",
                 "resposta": "O motor aspirado usa apenas a pressão atmosférica para admissão de ar. O turbo comprime o ar antes da combustão, aumentando potência e eficiência."
             }"""
-        ),
-    },
-]
-
+            ),
+        },
+    ]
 
     fewshots_especialista = FewShotChatMessagePromptTemplate(
         examples=shots_especialista, example_prompt=prompt_especialista
