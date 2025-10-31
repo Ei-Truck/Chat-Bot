@@ -126,10 +126,19 @@ def roteador_eitruck(user_id, session_id) -> RunnableWithMessageHistory:
             ),
         },
         {
-            "input": "O que é telemetria?",
+            "input": "Qual é meu nome?",
             "output": (
                 "ROUTE=outros\n"
-                "PERGUNTA_ORIGINAL=O que é telemetria?\n"
+                "PERGUNTA_ORIGINAL=Qual é meu nome?\n"
+                "PERSONA={PERSONA_SISTEMA}\n"
+                "CLARIFY="
+            ),
+        },
+        {
+            "input": "Quais foram minhas últimas perguntas?",
+            "output": (
+                "ROUTE=outros\n"
+                "PERGUNTA_ORIGINAL=Quais foram minhas últimas perguntas?\n"
                 "PERSONA={PERSONA_SISTEMA}\n"
                 "CLARIFY="
             ),
@@ -183,30 +192,34 @@ def especialista_auto(user_id, session_id) -> RunnableWithMessageHistory:
     )
 
     # Exemplo prático de resposta do especialista
-    shots_especialista = [
-        {
-            "input": (
-                "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual é a principal função da telemetria?\n"
-                "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
-            ),
-            "output": (
-                """{
-                    "dominio": "automobilistica",
-                    "resposta": "A telemetria é utilizada em diversas áreas, incluindo: "
-                        "- Veículos (monitoramento de frota) "
-                        "- Medicina (monitoramento de pacientes) "
-                        "- Indústria (manutenção preditiva) "
-                        "- Energia (monitoramento de redes elétricas) "
-                        "- Agricultura (sensores em plantações) "
-                        "- Esportes (dados de desempenho de atletas) "
-                        "- Aviação (sistemas de voo e caixa preta) "
-                        "- Defesa (monitoramento de drones e equipamentos remotos) "
-                        "- Meteorologia (sensores climáticos remotos) "
-                        "- Smart Cities (monitoramento de trânsito, iluminação e resíduos)"
-            """
-            ),
-        }
-    ]
+    shots_especialista = shots_especialista = [
+    {
+        "input": (
+            "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=O que é torque e como ele influencia o desempenho do veículo?\n"
+            "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
+        ),
+        "output": (
+            """{
+                "dominio": "automobilistica",
+                "resposta": "Torque é a força de rotação gerada pelo motor. 
+                Ele influencia a capacidade de aceleração e força para mover o veículo, especialmente em subidas ou cargas pesadas."
+            }"""
+        ),
+    },
+    {
+        "input": (
+            "ROUTE=automobilistica\nPERGUNTA_ORIGINAL=Qual a diferença entre motor aspirado e turbo?\n"
+            "PERSONA={PERSONA_SISTEMA}\nCLARIFY="
+        ),
+        "output": (
+            """{
+                "dominio": "automobilistica",
+                "resposta": "O motor aspirado usa apenas a pressão atmosférica para admissão de ar. O turbo comprime o ar antes da combustão, aumentando potência e eficiência."
+            }"""
+        ),
+    },
+]
+
 
     fewshots_especialista = FewShotChatMessagePromptTemplate(
         examples=shots_especialista, example_prompt=prompt_especialista
