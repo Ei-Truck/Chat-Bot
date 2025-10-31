@@ -27,11 +27,11 @@ A saída deve ser **sempre em JSON**, conforme o contrato abaixo, para envio ao 
 - Sempre responder no formato **JSON válido**.  
 - Estrutura mínima obrigatória:  
   ```json
-  {
+  {{
     "dominio": "financeiro",
     "resposta": "frase objetiva",
     "recomendacao": "ação prática ou vazio"
-  }
+  }}
 
 ### HISTÓRICO DA CONVERSA
 {chat_history}

@@ -27,6 +27,8 @@ app/
 │   └── ai_manager.py
 ├── config/
 │   └── config.py
+├── Image/
+│   └── Arquitetura_IA.png
 ├── routes/
 │   └── ai_route.py
 ├── schemas/

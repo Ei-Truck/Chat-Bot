@@ -5,10 +5,11 @@ wheel>=0.44.0
 
 # Flask
 Flask~=3.1.1
+Flask-CORS>=6.0.0,<7.0.0
 
 # Google Gemini API
-google-generativeai==0.8.5
-langchain-google-genai==2.0.10
+google-genai==1.44.0
+langchain-google-genai==2.1.12
 protobuf>=3.19.5,<5.0.0
 
 # LangChain
@@ -17,6 +18,7 @@ langchain-core~=0.3.62
 langchain-community~=0.3.25
 langchain-text-splitters~=0.3.8
 langchain-mongodb~=0.4.0
+langchain-huggingface~=0.3.1
 
 # Environment variables
 python-dotenv~=1.1.0
@@ -29,8 +31,11 @@ transformers==4.46.2
 faiss-cpu>=1.9.0,<2.0.0
 tokenizers==0.20.3
 huggingface-hub>=0.23.2,<1.0
-pymongo~=4.6.1
 prompt_toolkit==3.0.38
 
+# MongoDB / SSL
+pymongo>=4.6.1,<5.0.0
+certifi>=2025.9.24
+
 # Timezone data
-tzdata; platform_system == "Windows"
+tzdata; platform_system == "Linux"
