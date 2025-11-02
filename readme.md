@@ -29,6 +29,8 @@ app/
 │   └── config.py
 ├── Image/
 │   └── Arquitetura_IA.png
+│   └── mongoDB.md
+│   └── MongoDB.svg
 ├── routes/
 │   └── ai_route.py
 ├── schemas/
