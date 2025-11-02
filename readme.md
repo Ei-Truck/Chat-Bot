@@ -29,6 +29,8 @@ app/
 │   └── config.py
 ├── Image/
 │   └── Arquitetura_IA.png
+│   └── mongoDB.md
+│   └── MongoDB.svg
 ├── routes/
 │   └── ai_route.py
 ├── schemas/
@@ -47,21 +49,31 @@ app/
 
 ### 🛠️ Passo a Passo
 
-1. Instale as dependências:
-   ```bash
-   pip install -r requirements.txt
-    ````
+1. Inicie a aplicação do Docker Desktop em sua máquina.
 
-2. Rode o servidor Flask:
-
+2. No terminal ou git bash, clone o repositório e navegue até a pasta do projeto:
    ```bash
-   python main.py
+   git clone https://github.com/Ei-Truck/Chat-Bot.git
+   cd Chat-Bot
    ```
 
-3. Acesse via navegador:
-
+3. Na pasta raiz do projeto, adicione um arquivo .env com as variáveis de ambiente necessárias.
+   ```bash
+      GEMINI_API_KEY="<Sua chave de API do Gemini aqui>"
+      CONNSTRING="mongodb://root:rootpassword@chatbot_mongodb:27017/chatbot_db?authSource=admin"
    ```
-   http://127.0.0.1:5000
+   
+
+4. No terminal de comando na pasta Chat-Bot, inicialize pelo docker-compose:
+   ```bash
+   Docker compose up --build
+   ```
+
+5. A aplicação estará rodando em `http://127.0.0.1:5000`.
+
+6. Acesse via navegador:
+   ```
+   http://127.0.0.1:5000/health
    ```
 
 ---
@@ -93,7 +105,7 @@ app/
   {
     "question": "Sua pergunta aqui",
     "user_id": 1,
-    "session_id":0
+    "session_id":2
   }
   ```
 
@@ -125,6 +137,19 @@ app/
 }
 ```
 
+#### 🛑 Mensagem indevida
+
+```json
+{
+    "content": {
+        "answer": {
+            "error": "Pergunta contém linguagem ofensiva, discurso de ódio, calúnia ou difamação."
+        },
+        "question": "Mensagem do usuário que foi considerada indevida"
+    },
+    "timestamp": "2025-11-02T14:32:37.831629"
+}
+```
 ---
 
 ## 🧩 Organização dos Pacotes
