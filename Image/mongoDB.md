@@ -39,3 +39,15 @@ Os documentos dessa collection contêm, por exemplo:
 ### *Diagrama desenhado de utilização do MongoDB*:
 
 ![Diagrama MongoDB](./MongoDB.svg)
+
+---
+
+### *Exemplos de documentos no MongoDB:*
+
+#### Embeddings:
+![alt text](Embedding_PT1.png)
+
+![alt text](Embedding_PT2.png)
+
+#### Histórico de conversa:
+![alt text](HistoricoMongo.png)
