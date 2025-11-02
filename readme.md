@@ -31,6 +31,9 @@ app/
 │   └── Arquitetura_IA.png
 │   └── mongoDB.md
 │   └── MongoDB.svg
+│   └── Embedding_PT1.png
+│   └── Embedding_PT2.png
+│   └── HistoricoMongo.png
 ├── routes/
 │   └── ai_route.py
 ├── schemas/
